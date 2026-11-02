@@ -79,10 +79,30 @@ WP Snippet Studio will follow these principles throughout development:
 - Backward-compatible updates whenever possible.
 - Clear release notes and changelog entries for every public version.
 
+## Security requirements for the first release
+
+Security is a mandatory release criterion. Known exploitable vulnerabilities must be resolved before a release is published. The following requirements are planned and must be implemented and verified; they are not claims that the safeguards already exist.
+
+- Check the necessary user capabilities on every snippet-management action and every entry point. Login or a valid nonce alone is not authorization. Raw executable snippet code must not be exposed through unauthorized requests.
+- Restrict executable-code management to trusted users and respect WordPress file-editing and file-modification restrictions. Multisite support remains deferred until its separate permission model is explicitly implemented and tested.
+- Use authenticated, nonce-protected state-changing requests for saving, activating, deactivating, deleting, and manually running snippets.
+- Validate snippet types, execution scopes, identifiers, and numeric priorities. Sanitize metadata appropriately; preserve authorized source code and escape it when displaying it in the editor. Define and test explicit output rules for HTML and text snippets.
+- Use protected WordPress database APIs and prepared queries where needed. Allow-list any dynamic query fields and sorting options.
+- Save new snippets as inactive. Require PHP syntax validation before activation and do not proceed when required validation fails or cannot be completed.
+- Include a documented recovery mode in the first release, and verify that it bypasses snippets even when a snippet prevents normal dashboard access.
+- Keep code, credentials, and sensitive error details out of public responses. Any diagnostic storage must be access-controlled.
+- Do not provide public arbitrary-code execution endpoints or fetch executable snippets from remote sources in the first release.
+- Test unauthorized access, forged state-changing requests, SQL injection, stored script injection in management screens, shortcode output, invalid PHP, and recovery behavior. Check that upgrades preserve existing snippet data.
+- Perform manual security review alongside automated checks before releases. Review dependencies and keep credentials out of Git; any future publishing credentials must use protected secret storage.
+
+PHP snippets execute with the website's PHP permissions. Syntax checks, error handling, and recovery mode do not sandbox untrusted code or guarantee protection from every failure. The plugin must communicate this limitation accurately and require trusted code.
+
+Reference: [WordPress capability checks](https://developer.wordpress.org/plugins/security/checking-user-capabilities/) and [WordPress hardening guidance](https://developer.wordpress.org/advanced-administration/security/hardening/).
+
 ## Release workflow
 
 1. Build each feature in a dedicated, testable development task.
-2. Test functionality and edge cases before merging it into the main branch.
+2. Run functional and security checks plus manual review, and resolve known exploitable vulnerabilities before publishing a release.
 3. Record changes in the project documentation and changelog.
 4. Tag a versioned GitHub release.
 5. Publish the tested release through the distribution method chosen for the product.
