@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="wrap wpsstudio">
 	<div class="wpsstudio-heading">
-		<h1><span class="dashicons dashicons-editor-code" aria-hidden="true"></span> WP Snippet Studio <span class="wpsstudio-version">0.1.0</span></h1>
+		<h1><span class="dashicons dashicons-editor-code" aria-hidden="true"></span> WP Snippet Studio <span class="wpsstudio-version"><?php echo esc_html( WPSSTUDIO_VERSION ); ?></span></h1>
 		<form method="post" action="<?php echo esc_url( $this->url() ); ?>">
 			<?php $this->fields( Runner::safe_mode() ? 'safe_off' : 'safe_on' ); ?>
 			<button class="button"
