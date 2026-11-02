@@ -12,8 +12,14 @@ foreach ( $this->defaults() as $key => $fallback ) {
 }
 ?>
 <div class="wpsstudio-toolbar"><h2><?php echo $snippet['id'] ? esc_html__( 'Edit Snippet', 'wp-snippet-studio' ) : esc_html__( 'Add Snippet', 'wp-snippet-studio' ); ?></h2><a class="button" href="<?php echo esc_url( $this->url() ); ?>"><?php esc_html_e( 'All Snippets', 'wp-snippet-studio' ); ?></a></div>
-<?php if ( 'active' === $snippet['status'] ) : ?><div class="notice notice-info inline"><p><?php esc_html_e( 'This snippet is active. Saving your edits will deactivate it until you review and activate it again.', 'wp-snippet-studio' ); ?></p></div><?php endif; ?>
-<?php if ( $snippet['last_error'] || ( $snippet['id'] && ! $this->draft && ! $this->repository->verified( $snippet ) ) ) : ?><div class="notice notice-error inline"><p><?php esc_html_e( 'This snippet needs review. Check its source and save inactive to approve it again. Error details are not shown publicly.', 'wp-snippet-studio' ); ?></p></div><?php endif; ?>
+<?php
+if ( 'active' === $snippet['status'] ) :
+	?>
+	<div class="notice notice-info inline"><p><?php esc_html_e( 'This snippet is active. Saving your edits will deactivate it until you review and activate it again.', 'wp-snippet-studio' ); ?></p></div><?php endif; ?>
+<?php
+if ( $snippet['last_error'] || ( $snippet['id'] && ! $this->draft && ! $this->repository->verified( $snippet ) ) ) :
+	?>
+	<div class="notice notice-error inline"><p><?php esc_html_e( 'This snippet needs review. Check its source and save inactive to approve it again. Error details are not shown publicly.', 'wp-snippet-studio' ); ?></p></div><?php endif; ?>
 <form method="post" action="<?php echo esc_url( $this->url( $snippet['id'] ? array( 'id' => (int) $snippet['id'] ) : array( 'page' => 'wpsstudio-new' ) ) ); ?>" class="wpsstudio-editor-form">
 	<?php $this->fields( 'save', (int) $snippet['id'], (int) $snippet['revision'] ); ?>
 	<div class="wpsstudio-editor-main">
@@ -29,15 +35,37 @@ foreach ( $this->defaults() as $key => $fallback ) {
 	<aside class="wpsstudio-editor-settings" aria-label="<?php esc_attr_e( 'Snippet settings', 'wp-snippet-studio' ); ?>">
 		<h3><?php esc_html_e( 'Snippet settings', 'wp-snippet-studio' ); ?></h3>
 		<label for="wpsstudio-type"><?php esc_html_e( 'Type', 'wp-snippet-studio' ); ?></label>
-		<select id="wpsstudio-type" name="type"><?php foreach ( array( 'php' => 'PHP', 'css' => 'CSS', 'js' => 'JavaScript', 'html' => 'HTML', 'text' => __( 'Text / reusable content', 'wp-snippet-studio' ) ) as $key => $label ) : ?><option value="<?php echo esc_attr( $key ); ?>" <?php selected( $snippet['type'], $key ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select>
+		<select id="wpsstudio-type" name="type">
+		<?php
+		foreach ( array(
+			'php'  => 'PHP',
+			'css'  => 'CSS',
+			'js'   => 'JavaScript',
+			'html' => 'HTML',
+			'text' => __( 'Text / reusable content', 'wp-snippet-studio' ),
+		) as $key => $label ) :
+			?>
+										<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $snippet['type'], $key ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select>
 		<div class="wpsstudio-php-settings">
 			<label for="wpsstudio-scope"><?php esc_html_e( 'PHP run location', 'wp-snippet-studio' ); ?></label>
-			<select id="wpsstudio-scope" name="scope"><?php foreach ( array( 'everywhere' => __( 'Everywhere', 'wp-snippet-studio' ), 'frontend' => __( 'Frontend only', 'wp-snippet-studio' ), 'admin' => __( 'WordPress admin only', 'wp-snippet-studio' ), 'manual' => __( 'Run once manually', 'wp-snippet-studio' ) ) as $key => $label ) : ?><option value="<?php echo esc_attr( $key ); ?>" <?php selected( $snippet['scope'], $key ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select>
+			<select id="wpsstudio-scope" name="scope">
+			<?php
+			foreach ( array(
+				'everywhere' => __( 'Everywhere', 'wp-snippet-studio' ),
+				'frontend'   => __( 'Frontend only', 'wp-snippet-studio' ),
+				'admin'      => __( 'WordPress admin only', 'wp-snippet-studio' ),
+				'manual'     => __( 'Run once manually', 'wp-snippet-studio' ),
+			) as $key => $label ) :
+				?>
+												<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $snippet['scope'], $key ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select>
 		</div>
 		<div class="wpsstudio-priority-setting"><label for="wpsstudio-editor-priority"><?php esc_html_e( 'Priority', 'wp-snippet-studio' ); ?></label><input id="wpsstudio-editor-priority" name="priority" type="number" min="-9999" max="9999" step="1" value="<?php echo esc_attr( (string) $snippet['priority'] ); ?>" required><p class="description"><?php esc_html_e( 'Default 10. Lower numbers load first.', 'wp-snippet-studio' ); ?></p></div>
 		<div class="wpsstudio-shortcode-info" hidden><label for="wpsstudio-shortcode"><?php esc_html_e( 'Shortcode', 'wp-snippet-studio' ); ?></label><input id="wpsstudio-shortcode" type="text" readonly value="<?php echo esc_attr( $snippet['id'] ? '[wpsstudio id="' . (int) $snippet['id'] . '"]' : __( 'Available after saving', 'wp-snippet-studio' ) ); ?>"><p class="description"><?php esc_html_e( 'Activate the snippet, then paste this into your content.', 'wp-snippet-studio' ); ?></p></div>
 		<p class="wpsstudio-trust-note"><?php esc_html_e( 'Only use code you trust. PHP has your website’s permissions and cannot be sandboxed by this plugin. Save inactive, review, then activate from the list.', 'wp-snippet-studio' ); ?></p>
-		<?php if ( $snippet['last_run_at'] ) : ?><p class="description"><?php echo esc_html( sprintf( /* translators: %s: UTC date/time. */ __( 'Last manual attempt: %s UTC', 'wp-snippet-studio' ), $snippet['last_run_at'] ) ); ?></p><?php endif; ?>
+		<?php
+		if ( $snippet['last_run_at'] ) :
+			?>
+			<p class="description"><?php echo esc_html( sprintf( /* translators: %s: UTC date/time. */ __( 'Last manual attempt: %s UTC', 'wp-snippet-studio' ), $snippet['last_run_at'] ) ); ?></p><?php endif; ?>
 		<button class="button button-primary button-large"><?php esc_html_e( 'Save inactive', 'wp-snippet-studio' ); ?></button>
 	</aside>
 </form>

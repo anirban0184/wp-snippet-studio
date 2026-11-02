@@ -8,7 +8,9 @@ defined( 'ABSPATH' ) || exit;
 final class Runner {
 	private ?array $executing = null;
 	private string $reserve;
-	private bool $php_loaded = false;
+	private bool $php_loaded    = false;
+	private int $buffer_level   = 0;
+	private ?array $fatal_error = null;
 
 	public function __construct( private Repository $repository ) {
 		$this->reserve = str_repeat( 'r', 65536 );
@@ -25,7 +27,7 @@ final class Runner {
 		return ( defined( 'WPSSTUDIO_SAFE_MODE' ) && WPSSTUDIO_SAFE_MODE ) || '1' === get_option( 'wpsstudio_safe_mode', '0' );
 	}
 
-	/** Always keep the management route reachable, even without an existing login. */
+	/** Route recognition is never authorization. */
 	public static function management_request(): bool {
 		global $pagenow;
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Route recognition is read-only, never authorization.
@@ -38,7 +40,9 @@ final class Runner {
 	}
 
 	public function automatic_php(): void {
-		if ( $this->php_loaded || ! $this->available() || self::management_request() ) {
+		global $pagenow;
+		// Login and management are recovery routes; custom PHP cannot disable them.
+		if ( $this->php_loaded || ! $this->available() || self::management_request() || 'wp-login.php' === $pagenow ) {
 			return;
 		}
 		$this->php_loaded = true;
@@ -91,14 +95,28 @@ final class Runner {
 			$this->repository->quarantine( $row, 'integrity' === $valid->get_error_code() ? 'integrity' : 'validation' );
 			return false;
 		}
-		$this->executing = $row;
-		$level           = ob_get_level();
-		ob_start();
+		$this->executing    = $row;
+		$level              = ob_get_level();
+		$this->buffer_level = $level;
+		// WordPress flushes buffers early during shutdown. Filter a fatal buffer at
+		// flush time, before its normal shutdown hook can expose partial PHP output.
+		ob_start(
+			function ( string $output ): string {
+				$error = error_get_last();
+				if ( $this->executing && $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+						$this->fatal_error = $error;
+						return '';
+				}
+				return $output;
+			}
+		);
 		try {
 			// Locally entered code is privileged, NOT sandboxed. Validation never uses eval.
 			// Isolate the eval scope so snippets cannot accidentally inherit this object.
-			// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Explicit purpose: execute locally approved trusted PHP.
-			( static function ( string $wpsstudio_source ): void { eval( $wpsstudio_source ); } )( $row['code'] );
+			( static function ( string $wpsstudio_source ): void {
+				// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Explicit purpose: execute locally approved trusted PHP.
+				eval( $wpsstudio_source );
+			} )( $row['code'] );
 			while ( ob_get_level() > $level + 1 ) {
 				ob_end_flush();
 			}
@@ -121,12 +139,15 @@ final class Runner {
 	}
 
 	public function shutdown(): void {
-		$error = error_get_last();
+		$error = $this->fatal_error ?? error_get_last();
 		if ( ! $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
 			return;
 		}
 		$this->reserve = ''; // Leave a small chance of recovery after memory exhaustion.
 		if ( $this->executing ) {
+			while ( ob_get_level() > $this->buffer_level ) {
+				ob_end_clean();
+			}
 			$this->repository->quarantine( $this->executing, 'fatal' );
 			update_option( 'wpsstudio_safe_mode', '1', false );
 		} elseif ( str_contains( $error['file'], __FILE__ ) && str_contains( $error['file'], "eval()'d code" ) ) {

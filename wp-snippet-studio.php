@@ -35,9 +35,12 @@ register_activation_hook( __FILE__, array( Installer::class, 'activate' ) );
 
 // Multisite needs its own permission, migration and recovery model. Defer it.
 if ( is_multisite() ) {
-	add_action( 'admin_notices', static function () {
-		echo '<div class="notice notice-error"><p>' . esc_html__( 'WP Snippet Studio 0.1.0 supports single-site WordPress only. Snippet execution is disabled on multisite.', 'wp-snippet-studio' ) . '</p></div>';
-	} );
+	add_action(
+		'admin_notices',
+		static function () {
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'WP Snippet Studio 0.1.0 supports single-site WordPress only. Snippet execution is disabled on multisite.', 'wp-snippet-studio' ) . '</p></div>';
+		}
+	);
 	return;
 }
 

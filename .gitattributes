@@ -1,0 +1,12 @@
+/.github export-ignore
+/tests export-ignore
+/scripts export-ignore
+/docs/development.md export-ignore
+/docs/validation.md export-ignore
+/composer.json export-ignore
+/composer.lock export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/phpcs.xml.dist export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore

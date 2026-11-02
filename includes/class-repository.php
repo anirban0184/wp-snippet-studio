@@ -15,24 +15,24 @@ final class Repository {
 
 	public function get( int $id ): ?array {
 		global $wpdb;
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->table} WHERE id = %d", $id ), ARRAY_A ) ?: null;
+		$row = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table, $id ), ARRAY_A );
+		return $row ? $row : null;
 	}
 
 	/** Source code is not fetched into the list screen. */
 	public function page( string $type = '', int $page = 1 ): array {
 		global $wpdb;
 		$offset = ( max( 1, $page ) - 1 ) * 25;
-		$fields = 'id,title,type,scope,priority,status,revision,last_error,last_run_at';
 		if ( in_array( $type, Validator::TYPES, true ) ) {
-			return $wpdb->get_results( $wpdb->prepare( "SELECT $fields FROM {$this->table} WHERE type = %s ORDER BY priority ASC, id ASC LIMIT 25 OFFSET %d", $type, $offset ), ARRAY_A );
+			return $wpdb->get_results( $wpdb->prepare( 'SELECT id,title,type,scope,priority,status,revision,last_error,last_run_at FROM %i WHERE type = %s ORDER BY priority ASC, id ASC LIMIT 25 OFFSET %d', $this->table, $type, $offset ), ARRAY_A ) ?? array();
 		}
-		return $wpdb->get_results( $wpdb->prepare( "SELECT $fields FROM {$this->table} ORDER BY priority ASC, id ASC LIMIT 25 OFFSET %d", $offset ), ARRAY_A );
+		return $wpdb->get_results( $wpdb->prepare( 'SELECT id,title,type,scope,priority,status,revision,last_error,last_run_at FROM %i ORDER BY priority ASC, id ASC LIMIT 25 OFFSET %d', $this->table, $offset ), ARRAY_A ) ?? array();
 	}
 
 	public function counts(): array {
 		global $wpdb;
 		$counts = array_fill_keys( Validator::TYPES, 0 );
-		foreach ( $wpdb->get_results( "SELECT type, COUNT(*) AS total FROM {$this->table} GROUP BY type", ARRAY_A ) as $row ) {
+		foreach ( $wpdb->get_results( $wpdb->prepare( 'SELECT type, COUNT(*) AS total FROM %i GROUP BY type', $this->table ), ARRAY_A ) ?? array() as $row ) {
 			if ( isset( $counts[ $row['type'] ] ) ) {
 				$counts[ $row['type'] ] = (int) $row['total'];
 			}
@@ -43,7 +43,7 @@ final class Repository {
 
 	public function active( string $type ): array {
 		global $wpdb;
-		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->table} WHERE status = 'active' AND type = %s ORDER BY priority ASC, id ASC", $type ), ARRAY_A );
+		return $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE status = 'active' AND type = %s ORDER BY priority ASC, id ASC", $this->table, $type ), ARRAY_A ) ?? array();
 	}
 
 	private function signature( array $row ): string {
@@ -68,13 +68,32 @@ final class Repository {
 		}
 		$now = current_time( 'mysql', true );
 		if ( 0 === $id ) {
-			$data = array_merge( $data, array( 'status' => 'inactive', 'revision' => 1, 'signature' => '', 'last_run_hash' => '', 'last_run_at' => null, 'last_error' => '', 'created_at' => $now, 'updated_at' => $now ) );
-			if ( false === $wpdb->insert( $this->table, $data ) ) {
+			$data = array_merge(
+				$data,
+				array(
+					'status'        => 'inactive',
+					'revision'      => 1,
+					'signature'     => '',
+					'last_run_hash' => '',
+					'last_run_at'   => null,
+					'last_error'    => '',
+					'created_at'    => $now,
+					'updated_at'    => $now,
+				)
+			);
+			if ( false === $this->write( fn() => $wpdb->insert( $this->table, $data ) ) ) {
 				return $this->database_error();
 			}
 			$id         = (int) $wpdb->insert_id;
 			$data['id'] = $id;
-			if ( 1 !== $wpdb->update( $this->table, array( 'signature' => $this->signature( $data ) ), array( 'id' => $id, 'revision' => 1 ) ) ) {
+			if ( 1 !== $wpdb->update(
+				$this->table,
+				array( 'signature' => $this->signature( $data ) ),
+				array(
+					'id'       => $id,
+					'revision' => 1,
+				)
+			) ) {
 				return $this->database_error();
 			}
 			return $id;
@@ -84,7 +103,16 @@ final class Repository {
 			return $this->conflict();
 		}
 		// An unverified receipt is preserved conservatively, never silently cleared.
-		$data = array_merge( $row, $data, array( 'status' => 'inactive', 'revision' => $revision + 1, 'last_error' => '', 'updated_at' => $now ) );
+		$data = array_merge(
+			$row,
+			$data,
+			array(
+				'status'     => 'inactive',
+				'revision'   => $revision + 1,
+				'last_error' => '',
+				'updated_at' => $now,
+			)
+		);
 		return $this->replace( $row, $data ) ? $id : $this->conflict();
 	}
 
@@ -134,7 +162,14 @@ final class Repository {
 
 	public function delete( int $id, int $revision ): true|\WP_Error {
 		global $wpdb;
-		return 1 === $wpdb->delete( $this->table, array( 'id' => $id, 'revision' => $revision ), array( '%d', '%d' ) ) ? true : $this->conflict();
+		return 1 === $wpdb->delete(
+			$this->table,
+			array(
+				'id'       => $id,
+				'revision' => $revision,
+			),
+			array( '%d', '%d' )
+		) ? true : $this->conflict();
 	}
 
 	/** Claim BEFORE execution. Duplicate or concurrent POSTs cannot reuse the claim. */
@@ -155,10 +190,10 @@ final class Repository {
 			return new \WP_Error( 'already_run', __( 'This code has already been attempted. Change and review the code before another manual run.', 'wp-snippet-studio' ) );
 		}
 		$new                  = $row;
-		$new['last_run_hash']  = $hash;
-		$new['last_run_at']    = current_time( 'mysql', true );
-		$new['status']         = 'inactive';
-		$new['revision']       = $revision + 1;
+		$new['last_run_hash'] = $hash;
+		$new['last_run_at']   = current_time( 'mysql', true );
+		$new['status']        = 'inactive';
+		$new['revision']      = $revision + 1;
 		return $this->replace( $row, $new ) ? $new : $this->conflict();
 	}
 
@@ -181,15 +216,48 @@ final class Repository {
 	public function quarantine( array $row, string $reason ): bool {
 		global $wpdb;
 		$reason = in_array( $reason, array( 'integrity', 'validation', 'runtime', 'fatal' ), true ) ? $reason : 'runtime';
-		return 1 === $wpdb->update( $this->table, array( 'status' => 'inactive', 'signature' => '', 'last_error' => $reason, 'revision' => (int) $row['revision'] + 1 ), array( 'id' => (int) $row['id'], 'revision' => (int) $row['revision'] ) );
+		return 1 === $wpdb->update(
+			$this->table,
+			array(
+				'status'     => 'inactive',
+				'signature'  => '',
+				'last_error' => $reason,
+				'revision'   => (int) $row['revision'] + 1,
+			),
+			array(
+				'id'       => (int) $row['id'],
+				'revision' => (int) $row['revision'],
+			)
+		);
 	}
 
-	private function replace( array $old, array $new ): bool {
+	private function replace( array $old, array $replacement ): bool {
 		global $wpdb;
-		$new['updated_at'] = current_time( 'mysql', true );
-		$new['signature']  = $this->signature( $new );
-		unset( $new['id'], $new['created_at'] );
-		return 1 === $wpdb->update( $this->table, $new, array( 'id' => (int) $old['id'], 'revision' => (int) $old['revision'], 'signature' => $old['signature'] ) );
+		$replacement['updated_at'] = current_time( 'mysql', true );
+		$replacement['signature']  = $this->signature( $replacement );
+		unset( $replacement['id'], $replacement['created_at'] );
+		return 1 === $this->write(
+			fn() => $wpdb->update(
+				$this->table,
+				$replacement,
+				array(
+					'id'        => (int) $old['id'],
+					'revision'  => (int) $old['revision'],
+					'signature' => $old['signature'],
+				)
+			)
+		);
+	}
+
+	/** wpdb's error logger can include SQL containing source; suppress it for source writes. */
+	private function write( callable $query ): int|bool {
+		global $wpdb;
+		$previous = $wpdb->suppress_errors( true );
+		try {
+			return $query();
+		} finally {
+			$wpdb->suppress_errors( $previous );
+		}
 	}
 
 	private function conflict(): \WP_Error {

@@ -10,7 +10,11 @@ defined( 'ABSPATH' ) || exit;
 		<h1><span class="dashicons dashicons-editor-code" aria-hidden="true"></span> WP Snippet Studio <span class="wpsstudio-version">0.1.0</span></h1>
 		<form method="post" action="<?php echo esc_url( $this->url() ); ?>">
 			<?php $this->fields( Runner::safe_mode() ? 'safe_off' : 'safe_on' ); ?>
-			<button class="button" <?php if ( Runner::safe_mode() ) : ?>data-confirm="<?php esc_attr_e( 'Resume all active snippets? Review problematic snippets first.', 'wp-snippet-studio' ); ?>"<?php endif; ?>><?php echo Runner::safe_mode() ? esc_html__( 'Turn Safe Mode off', 'wp-snippet-studio' ) : esc_html__( 'Enable Safe Mode', 'wp-snippet-studio' ); ?></button>
+			<button class="button"
+			<?php
+			if ( Runner::safe_mode() ) :
+				?>
+				data-confirm="<?php esc_attr_e( 'Resume all active snippets? Review problematic snippets first.', 'wp-snippet-studio' ); ?>"<?php endif; ?>><?php echo Runner::safe_mode() ? esc_html__( 'Turn Safe Mode off', 'wp-snippet-studio' ) : esc_html__( 'Enable Safe Mode', 'wp-snippet-studio' ); ?></button>
 		</form>
 	</div>
 	<?php if ( Runner::safe_mode() ) : ?>
@@ -21,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 	<?php endif; ?>
 	<?php
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Fixed notice allow-list, never source or arbitrary messages.
-	$notice = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? $_GET['notice'] : '';
+	$notice   = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? $_GET['notice'] : '';
 	$messages = array(
 		'saved'      => __( 'Snippet saved inactive. Review it, then activate it from All Snippets.', 'wp-snippet-studio' ),
 		'activate'   => __( 'Snippet activated.', 'wp-snippet-studio' ),

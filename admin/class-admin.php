@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Admin {
 	private ?\WP_Error $error = null;
-	private ?array $draft = null;
+	private ?array $draft     = null;
 
 	public function __construct( private Repository $repository, private Runner $runner ) {}
 
@@ -53,12 +53,26 @@ final class Admin {
 		}
 		$revision = Validator::id( $post['revision'] ?? '' );
 		if ( 'save' === $action ) {
-			$input = array_intersect_key( $post, array_flip( array( 'title', 'description', 'code', 'type', 'scope', 'priority' ) ) );
+			$input  = array_intersect_key( $post, array_flip( array( 'title', 'description', 'code', 'type', 'scope', 'priority' ) ) );
 			$result = $this->repository->save( $input, $id, $revision );
 			if ( is_wp_error( $result ) ) {
-				$this->draft = array_merge( $this->defaults(), $input, array( 'id' => $id, 'revision' => $revision ) );
+				$this->draft = array_merge(
+					$this->defaults(),
+					$input,
+					array(
+						'id'       => $id,
+						'revision' => $revision,
+					)
+				);
 			} else {
-				wp_safe_redirect( $this->url( array( 'id' => $result, 'notice' => 'saved' ) ) );
+				wp_safe_redirect(
+					$this->url(
+						array(
+							'id'     => $result,
+							'notice' => 'saved',
+						)
+					)
+				);
 				exit;
 			}
 		} elseif ( 'safe_on' === $action || 'safe_off' === $action ) {
@@ -100,7 +114,17 @@ final class Admin {
 		wp_enqueue_style( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.css', array(), WPSSTUDIO_VERSION );
 		wp_enqueue_script( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.js', array(), WPSSTUDIO_VERSION, true );
 		if ( $this->editing() ) {
-			$settings = wp_enqueue_code_editor( array( 'type' => 'application/x-httpd-php', 'codemirror' => array( 'lineNumbers' => true, 'indentUnit' => 4, 'indentWithTabs' => true, 'lint' => false ) ) );
+			$settings = wp_enqueue_code_editor(
+				array(
+					'type'       => 'application/x-httpd-php',
+					'codemirror' => array(
+						'lineNumbers'    => true,
+						'indentUnit'     => 4,
+						'indentWithTabs' => true,
+						'lint'           => false,
+					),
+				)
+			);
 			if ( $settings ) {
 				wp_add_inline_script( 'wpsstudio-admin', 'window.wpsstudioEditorSettings = ' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';', 'before' );
 			}
@@ -113,7 +137,19 @@ final class Admin {
 	}
 
 	private function defaults(): array {
-		return array( 'id' => 0, 'revision' => 0, 'title' => '', 'description' => '', 'code' => '', 'type' => 'php', 'scope' => 'everywhere', 'priority' => 10, 'status' => 'inactive', 'last_run_at' => null, 'last_error' => '' );
+		return array(
+			'id'          => 0,
+			'revision'    => 0,
+			'title'       => '',
+			'description' => '',
+			'code'        => '',
+			'type'        => 'php',
+			'scope'       => 'everywhere',
+			'priority'    => 10,
+			'status'      => 'inactive',
+			'last_run_at' => null,
+			'last_error'  => '',
+		);
 	}
 
 	public function render(): void {
@@ -134,7 +170,7 @@ final class Admin {
 			$type = isset( $_GET['type'] ) && is_string( $_GET['type'] ) && in_array( $_GET['type'], Validator::TYPES, true ) ? $_GET['type'] : '';
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only pagination.
 			$current_page = max( 1, Validator::id( $_GET['paged'] ?? '' ) );
-			$total        = $counts[ $type ?: 'all' ];
+			$total        = $counts[ $type ? $type : 'all' ];
 			$pages        = max( 1, (int) ceil( $total / 25 ) );
 			$current_page = min( $current_page, $pages );
 			$snippets     = Installer::ready() ? $this->repository->page( $type, $current_page ) : array();
@@ -157,6 +193,11 @@ final class Admin {
 		if ( 'php' !== $row['type'] ) {
 			return in_array( $row['type'], array( 'html', 'text' ), true ) ? __( 'Shortcode', 'wp-snippet-studio' ) : ( 'css' === $row['type'] ? __( 'Frontend · Head', 'wp-snippet-studio' ) : __( 'Frontend · Footer', 'wp-snippet-studio' ) );
 		}
-		return array( 'everywhere' => __( 'Everywhere', 'wp-snippet-studio' ), 'frontend' => __( 'Frontend only', 'wp-snippet-studio' ), 'admin' => __( 'Admin only', 'wp-snippet-studio' ), 'manual' => __( 'Run once manually', 'wp-snippet-studio' ) )[ $row['scope'] ] ?? __( 'Review required', 'wp-snippet-studio' );
+		return array(
+			'everywhere' => __( 'Everywhere', 'wp-snippet-studio' ),
+			'frontend'   => __( 'Frontend only', 'wp-snippet-studio' ),
+			'admin'      => __( 'Admin only', 'wp-snippet-studio' ),
+			'manual'     => __( 'Run once manually', 'wp-snippet-studio' ),
+		)[ $row['scope'] ] ?? __( 'Review required', 'wp-snippet-studio' );
 	}
 }

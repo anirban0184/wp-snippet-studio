@@ -1,0 +1,122 @@
+name: Development checks
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer validate --strict
+      - run: composer lint
+      - run: composer audit --locked --no-interaction
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=moderate
+      - run: git ls-files '*.php' | xargs -n 1 php -l
+      - run: node --check assets/admin.js && node --check tests/browser.mjs
+      - run: php scripts/build.php
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: wp-snippet-studio-development-build
+          path: |
+            build/*.zip
+            build/*.sha256
+          if-no-files-found: error
+
+  wordpress:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            wordpress: '6.4'
+          - php: '8.3'
+            wordpress: latest
+          - php: '8.4'
+            wordpress: latest
+    services:
+      database:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: wpsstudio-disposable-ci
+          MARIADB_DATABASE: wpsstudio_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      WP_CLI_ALLOW_ROOT: '1'
+      WPSSTUDIO_TESTS: '1'
+      WPSSTUDIO_QA_FIXTURE: ${{ github.workspace }}/build/qa/fixture.json
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, mbstring, xml, zip
+          tools: wp-cli:2.12.0
+          coverage: none
+      - name: Install a disposable WordPress site
+        env:
+          WP_VERSION: ${{ matrix.wordpress }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/wordpress" build/qa
+          wp core download --path="$RUNNER_TEMP/wordpress" --version="$WP_VERSION"
+          wp config create --path="$RUNNER_TEMP/wordpress" --dbname=wpsstudio_test --dbuser=root --dbpass=wpsstudio-disposable-ci --dbhost=127.0.0.1:3306 --skip-check
+          wp config set WP_ENVIRONMENT_TYPE local --path="$RUNNER_TEMP/wordpress"
+          wp config set WP_DEBUG true --raw --path="$RUNNER_TEMP/wordpress"
+          wp config set WP_DEBUG_DISPLAY false --raw --path="$RUNNER_TEMP/wordpress"
+          wp config set WP_DEBUG_LOG "$RUNNER_TEMP/wordpress-debug.log" --path="$RUNNER_TEMP/wordpress"
+          wp config set DISABLE_WP_CRON true --raw --path="$RUNNER_TEMP/wordpress"
+          wp core install --path="$RUNNER_TEMP/wordpress" --url=http://127.0.0.1:8090 --title='Snippet Studio checks' --admin_user=studioqa --admin_password="$(openssl rand -hex 24)" --admin_email=qa@example.test --skip-email
+          ln -s "$GITHUB_WORKSPACE" "$RUNNER_TEMP/wordpress/wp-content/plugins/wp-snippet-studio"
+          wp plugin activate wp-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
+      - name: Integration and fail-closed policies
+        run: |
+          wp eval-file tests/integration.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          for policy in file_edit file_mods; do
+            WPSSTUDIO_TEST_POLICY="$policy" wp --require="$GITHUB_WORKSPACE/tests/policy-bootstrap.php" eval-file tests/policy.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          done
+          WPSSTUDIO_TEST_POLICY=tokenizer php -d disable_functions=token_get_all "$(which wp)" --require="$GITHUB_WORKSPACE/tests/policy-bootstrap.php" eval-file tests/policy.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: matrix.php == '8.3'
+        with:
+          node-version: '22'
+      - name: Browser and fatal recovery checks
+        if: matrix.php == '8.3'
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+          wp eval-file tests/browser-fixtures.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          php -S 127.0.0.1:8090 -t "$RUNNER_TEMP/wordpress" > "$RUNNER_TEMP/wordpress-server.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8090/wp-login.php > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:browser
+      - name: Remove browser fixtures
+        if: always() && matrix.php == '8.3'
+        run: wp eval-file tests/browser-cleanup.php --path="$RUNNER_TEMP/wordpress" --user=studioqa

@@ -30,7 +30,8 @@ final class Installer {
 		$table   = $wpdb->prefix . 'wpsstudio_snippets';
 		$charset = $wpdb->get_charset_collate();
 		// dbDelta is additive; existing rows and user data are preserved.
-		dbDelta( "CREATE TABLE $table (
+		dbDelta(
+			"CREATE TABLE $table (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			title varchar(150) NOT NULL,
 			description text NOT NULL,
@@ -48,9 +49,15 @@ final class Installer {
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			KEY execution (status,type,priority,id)
-		) $charset;" );
+		) $charset;"
+		);
 		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) );
 		if ( $table !== $exists || $wpdb->last_error ) {
+			return false;
+		}
+		$columns  = $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $table ) );
+		$required = array( 'id', 'title', 'description', 'code', 'type', 'scope', 'status', 'priority', 'revision', 'signature', 'last_run_hash', 'last_run_at', 'last_error', 'created_at', 'updated_at' );
+		if ( array_diff( $required, $columns ) ) {
 			return false;
 		}
 		update_option( 'wpsstudio_schema_version', self::SCHEMA_VERSION, false );

@@ -63,7 +63,11 @@ final class Validator {
 	}
 
 	public static function id( mixed $value ): int {
-		return is_scalar( $value ) && preg_match( '/^[1-9]\d*$/D', (string) $value ) && (float) $value <= PHP_INT_MAX ? (int) $value : 0;
+		if ( ! is_scalar( $value ) || ! preg_match( '/^[1-9]\d*$/D', (string) $value ) ) {
+			return 0;
+		}
+		$validated = filter_var( $value, FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
+		return false === $validated ? 0 : $validated;
 	}
 
 	public static function php( string $code ): true|\WP_Error {
