@@ -36,7 +36,7 @@ Only active, verified **HTML/text** can render through `[wpsstudio id="12"]`. HT
 
 ## Manual attempts and concurrency
 
-Run once claims the record with a revision-and-signature compare-and-swap **before** executing. A failed/interrupted run remains attempted; duplicate or concurrent POSTs cannot repeat that claim. The last attempted source hash prevents repeating unchanged source, including after metadata edits. Changing source allows another attempt. This is not a permanent history of every prior code version and is not a rollback mechanism. Database restoration, deleting/recreating a snippet or changing its source can permit execution again. Manual direct output is discarded; effects such as data writes remain.
+Run once claims the record with a revision-and-signature compare-and-swap **before** executing. A failed/interrupted run remains attempted; duplicate or concurrent POSTs cannot repeat that claim. The last attempted source hash prevents repeating unchanged source, including after metadata edits. Changing source allows another attempt. This is not a permanent history of every prior code version and is not a rollback mechanism. Database restoration, deleting/recreating a snippet or changing its source can permit execution again. Manual direct output is discarded; effects such as data writes remain. Manual code runs during the protected admin POST, after `init` has already fired, so maintenance work should execute directly or use an appropriate later hook.
 
 Stale editor/status/priority/delete forms are rejected. This protects against overwriting a newer save, not against the effects of an already executing request or malicious privileged code.
 

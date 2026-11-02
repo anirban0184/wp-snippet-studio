@@ -2,6 +2,8 @@
 
 Local validation performed on 2026-11-03. Use the latest GitHub Actions results to assess any later revision. This is internal implementation review and automated validation, not an independent security audit or a production-readiness certification.
 
+The [GitHub Actions run for the implemented source](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41525992712) completed successfully, including all four jobs. Its pull-request run also passed. CI verified **96 integration checks plus all three isolated policies** on WordPress 6.4 / PHP 8.2.35, WordPress 7.1.4 / PHP 8.3.36 and WordPress 7.1.4 / PHP 8.4.27. The PHP 8.3 job also passed **51 browser checks** in Chrome Headless Shell 151.0.7922.34. These results cover the core source before the final documentation/CI-trigger housekeeping commit; inspect the latest PR checks for that revision.
+
 | Check | Environment / result |
 | --- | --- |
 | Core integration | WordPress 7.1.4, PHP 8.3.6, MariaDB 10.11.14: **96 checks passed** |
@@ -24,7 +26,7 @@ Manual source review covered capability/nonces on every management path, source 
 
 ## Remaining release work
 
-- Run and inspect the configured GitHub CI matrix; its configuration alone is not a passing result.
+- Keep the GitHub CI matrix passing for future source changes and inspect actual results.
 - Test on a compatible staging copy with the intended theme, Elementor/WooCommerce stack, cache, security and hosting configuration. Generic WordPress tests do not establish compatibility with every plugin or persistent cache.
 - Verify a real backup/restore and hosting/file recovery route before any production installation.
 - Decide the distribution channel and implement/test customer update delivery separately. There is no updater, stable release, WordPress.org submission or approval in this build.
