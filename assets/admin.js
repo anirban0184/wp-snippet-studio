@@ -1,54 +1,45 @@
 ( function () {
 	'use strict';
-
-	document.addEventListener( 'click', function ( event ) {
-		var control = event.target.closest( '[data-confirm]' );
-		if ( control && ! window.confirm( control.dataset.confirm ) ) {
+	document.addEventListener( 'click', async function ( event ) {
+		var confirmation = event.target.closest( '[data-confirm]' );
+		if ( confirmation && ! window.confirm( confirmation.dataset.confirm ) ) {
 			event.preventDefault();
 		}
+		var copy = event.target.closest( '.wpsstudio-copy' );
+		if ( ! copy ) { return; }
+		var input = document.getElementById( copy.dataset.target );
+		if ( ! input ) { return; }
+		var message;
+		try {
+			await navigator.clipboard.writeText( input.value );
+			message = copy.dataset.copied;
+		} catch ( error ) {
+			input.focus();
+			input.select();
+			message = copy.dataset.manual;
+		}
+		var feedback = document.querySelector( '.wpsstudio-copy-feedback' );
+		if ( feedback ) { feedback.textContent = message; }
 	} );
-
 	var form = document.querySelector( '.wpsstudio-editor-form' );
-	if ( ! form ) {
-		return;
-	}
+	if ( ! form ) { return; }
 	var type = document.getElementById( 'wpsstudio-type' );
-	var scope = document.getElementById( 'wpsstudio-scope' );
 	var source = document.getElementById( 'wpsstudio-code' );
 	var editor = null;
-	if ( window.wp && wp.codeEditor && window.wpsstudioEditorSettings ) {
-		editor = wp.codeEditor.initialize( source, window.wpsstudioEditorSettings );
-		// Native validation cannot focus a required textarea hidden by CodeMirror.
+	if ( form.dataset.enhance === '1' && window.wp && wp.codeEditor ) {
+		editor = wp.codeEditor.initialize( source );
 		source.required = false;
 	}
-	var modes = { php: 'text/x-php', css: 'text/css', js: 'javascript', html: 'htmlmixed', text: 'text/plain' };
 	function refresh() {
-		var value = type.value;
-		var php = value === 'php';
-		var content = value === 'html' || value === 'text';
-		form.querySelector( '.wpsstudio-php-settings' ).hidden = ! php;
-		form.querySelector( '.wpsstudio-shortcode-info' ).hidden = ! content;
-		form.querySelector( '.wpsstudio-priority-setting' ).hidden = content || ( php && scope.value === 'manual' );
-		if ( editor ) {
-			editor.codemirror.setOption( 'mode', modes[ value ] || 'text/plain' );
-		}
-		// Help text is translated in the PHP view through data attributes below.
-		var help = document.getElementById( 'wpsstudio-code-help' );
-		help.textContent = source.dataset[ value + 'Help' ] || '';
+		if ( editor ) { editor.codemirror.setOption( 'mode', type.value === 'html' ? 'htmlmixed' : 'text/plain' ); }
+		document.getElementById( 'wpsstudio-content-help' ).textContent = type.value === 'html' ? source.dataset.htmlHelp : source.dataset.textHelp;
 	}
 	type.addEventListener( 'change', refresh );
-	scope.addEventListener( 'change', refresh );
 	form.addEventListener( 'submit', function ( event ) {
-		if ( editor ) {
-			editor.codemirror.save();
-		}
+		if ( editor ) { editor.codemirror.save(); }
 		if ( ! source.value.trim() ) {
 			event.preventDefault();
-			if ( editor ) {
-				editor.codemirror.focus();
-			} else {
-				source.focus();
-			}
+			if ( editor ) { editor.codemirror.focus(); } else { source.focus(); }
 		}
 	} );
 	refresh();

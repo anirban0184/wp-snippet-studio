@@ -3,13 +3,11 @@
 
 use GlowingCoders\WPSnippetStudio\Repository;
 
-if ( '1' !== getenv( 'WPSSTUDIO_TESTS' ) || ! in_array( wp_get_environment_type(), array( 'local', 'development' ), true ) ) {
-	WP_CLI::error( 'Disposable test site required.' );
-}
+require __DIR__ . '/bootstrap.php';
 $repository = new Repository();
 $action = getenv( 'WPSSTUDIO_RETENTION_ACTION' );
 if ( 'seed' === $action ) {
-	$id = $repository->save( array( 'title' => 'Package retention check', 'description' => 'Disposable fixture', 'type' => 'css', 'scope' => 'frontend', 'priority' => -12, 'code' => 'body { --wpsstudio-retention: 1; }' ) );
+	$id = $repository->save( array( 'title' => 'Package retention check', 'description' => 'Disposable fixture', 'type' => 'html', 'code' => '<p>Preserve reviewed content.</p>' ) );
 	if ( is_wp_error( $id ) || true !== $repository->status( $id, 1, true ) ) {
 		WP_CLI::error( 'Could not seed the retention record.' );
 	}

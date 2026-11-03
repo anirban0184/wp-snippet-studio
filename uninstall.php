@@ -9,7 +9,6 @@ if ( ! defined( 'WPSSTUDIO_DELETE_DATA' ) || true !== WPSSTUDIO_DELETE_DATA || i
 
 global $wpdb;
 $wpsstudio_table = $wpdb->prefix . 'wpsstudio_snippets';
-// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- Trusted table identifier, never request data.
-$wpdb->query( "DROP TABLE IF EXISTS `$wpsstudio_table`" );
+$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpsstudio_table ) );
 delete_option( 'wpsstudio_schema_version' );
 delete_option( 'wpsstudio_safe_mode' );

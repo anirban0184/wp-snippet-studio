@@ -1,59 +1,71 @@
 === WP Snippet Studio ===
 Contributors: glowingcoders
-Tags: snippets, custom code, css, javascript, php
+Tags: reusable content, html, text, shortcodes, snippets
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: trunk
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Manage trusted PHP, CSS, JavaScript, HTML and reusable text in a compact dashboard.
+Create reusable HTML and plain text with inactive-first saves, separate activation, shortcodes and a site-wide output pause.
 
 == Description ==
 
-Development build 0.1.1. Test on staging with a database backup and file access before considering production use. No WordPress.org listing or automatic update service is configured.
+WP Snippet Studio helps administrators maintain repeated content in one place. Use it for contact details, opening hours, notices, calls to action and other reusable HTML or plain text.
 
-* No artificial limit on snippet count. Paginated, compact management table with type navigation.
-* PHP, CSS, JavaScript, filtered HTML and escaped reusable text.
-* Titles, descriptions, priority, individual activation and deactivation.
-* PHP scopes: everywhere, frontend, admin, or one manual attempt per changed source.
-* Frontend CSS in the head and JavaScript in the footer.
-* Active HTML/text shortcodes: [wpsstudio id="12"].
-* New snippets and edits save inactive. Syntax validation before PHP save/activation.
-* Safe Mode, installation-bound integrity signatures and stale-edit protection.
-* Single-site WordPress only. All included features are free.
+Each snippet is saved inactive. Review its filtered content, activate it, and place its shortcode wherever WordPress processes shortcodes. Editing an active snippet makes it inactive again until you review and reactivate it.
 
-PHP and JavaScript are executable code. Trusted users need manage_options and edit_plugins; WordPress file-edit/modification restrictions are respected. PHP is not sandboxed. Login and this plugin's management pages bypass automatic PHP for recovery.
+* HTML and plain text with titles and descriptions.
+* No artificial limit on the number of snippets. Each snippet supports up to 1 MB of content.
+* Individual activation and deactivation.
+* A compact Name / Type / Shortcode / Status / Actions table with HTML/text filters and pagination.
+* Copyable shortcodes such as [wpsstudio id="12"].
+* Basic HTML filtered on save and output using an explicit allow-list.
+* Plain text escaped on output with line breaks preserved.
+* Pause all output without losing active settings.
+* Administrator permissions, action-specific nonces, content approval signatures and stale-edit protection.
+* Data retained across deactivation, replacement and ordinary uninstall.
 
-Snippets are stored in the existing site's database table {prefix}wpsstudio_snippets. Deactivation, upgrades and ordinary uninstall preserve data. See docs/security-and-recovery.md before using executable code.
+The editor accepts content only. It does not execute PHP or user-written JavaScript, inject CSS, expand nested shortcodes, download executable code or install other software. All included features are free. There are no accounts, subscriptions, remote services or telemetry.
+
+HTML supports paragraphs, basic formatting, headings, lists, links, images and tables. Scripts, style tags/attributes, forms, iframes, SVG and event handlers are removed. Review the saved result before activation. Content can include administrator-selected external image URLs; browsers load those images like ordinary website content.
+
+Active content is public wherever its shortcode is placed. This is not a private-content access system. The plugin currently supports single-site WordPress.
+
+Source and development tools: https://github.com/anirban0184/wp-snippet-studio
 
 == Installation ==
 
-1. Use the generated wp-snippet-studio-0.1.1.zip on a single-site staging installation with WordPress 6.4+ and PHP 8.2+.
-2. Upload using Plugins > Add Plugin > Upload Plugin and activate using a trusted administrator account.
-3. Open Snippet Studio > Add New, save inactive, review and activate from All Snippets.
-4. Use only code you trust. For PHP, omit opening/closing PHP tags. For CSS/JS, omit style/script tags.
+1. Install WP Snippet Studio and activate it on a single-site installation using WordPress 6.4+ and PHP 8.2+.
+2. Open Snippet Studio > Add New.
+3. Add a title, choose HTML or plain text, enter content and save inactive.
+4. Review the saved content, then activate it from All Snippets.
+5. Copy its shortcode into a Shortcode block or another location where WordPress processes shortcodes.
 
 == Frequently Asked Questions ==
 
-= How can I recover? =
-Open /wp-admin/admin.php?page=wpsstudio directly. Login and the management pages bypass automatic PHP. Enable Safe Mode before reviewing code. If needed, add define( 'WPSSTUDIO_SAFE_MODE', true ); above the stop-editing line in wp-config.php. File access is the fallback if another component blocks the dashboard.
+= Can this run PHP, JavaScript or CSS snippets? =
+No. This edition manages HTML and plain text only. Content that looks like PHP or a nested shortcode is never interpreted as code.
 
-= Does saving an active snippet update it live? =
-Saving deactivates it. Activate it separately after review. Changes cannot reverse database writes or other effects of code that already ran.
+= What happens when I edit active content? =
+Saving deactivates it. Review the saved result and activate it again from All Snippets. An inactive or missing snippet renders an empty string.
 
-= Can a PHP snippet run exactly once with rollback? =
-No. A manual attempt is claimed atomically before execution. Repeated/concurrent submissions are blocked for the same attempted source. A fatal or interrupted attempt is still recorded; side effects are not rolled back. Changing source allows a new attempt.
+= How does Pause all output work? =
+It suppresses all snippet shortcodes on new requests while preserving active settings. Resume output when ready. Previously cached pages may still contain earlier output until the site's caches are cleared.
 
-= Can I update from GitHub automatically? =
-No updater is included in 0.1.1. GitHub source changes do not automatically update installed plugins. Distribution and customer updates require a separate release decision and implementation.
+= What happens to development-build records? =
+Upgrading from the earlier development build preserves its database rows and content, but disables all existing approvals. HTML/text records require review and an inactive save before activation. Unsupported types remain stored but cannot be edited, activated or rendered by this edition.
+
+= Will uninstalling remove content? =
+Ordinary uninstall preserves the custom table and settings. To opt into permanent removal, back up first and define WPSSTUDIO_DELETE_DATA as true in wp-config.php before uninstalling. This also removes preserved development-build records. Remove that constant afterward.
+
+= Where is content stored? =
+In the existing WordPress database, in the table {prefix}wpsstudio_snippets. There is no separate database or external storage service.
 
 == Changelog ==
 
-= 0.1.1 — development =
-* Fix frontend-only PHP on normal home/index.php paths when WordPress uses query-based REST URLs, and prevent early-loading failures with pretty permalinks.
-* Extend acceptance, browser, pagination and concurrent manual-run regression checks.
-
-= 0.1.0 — development =
-* Initial local snippet management, compact dashboard, scopes, priority, reusable content and recovery protections.
+= 1.0.0 =
+* Initial HTML/plain-text edition with inactive saves, individual activation, reusable shortcodes and output pause.
+* Add explicit HTML filtering, escaped text, administrator-only management, content approval signatures and revision checks.
+* Preserve legacy development records without executing unsupported types.

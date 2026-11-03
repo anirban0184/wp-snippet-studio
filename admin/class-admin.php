@@ -1,21 +1,26 @@
 <?php
-/** Protected administration, with POST/redirect/GET for successful writes. @package WPSnippetStudio */
+/** Capability-gated content screens and authenticated POST actions. @package WPSnippetStudio */
 
 namespace GlowingCoders\WPSnippetStudio;
 
 defined( 'ABSPATH' ) || exit;
 
 final class Admin {
-	private ?\WP_Error $error = null;
-	private ?array $draft     = null;
+	private ?\WP_Error $error    = null;
+	private ?array $draft        = null;
+	private bool $editor_enabled = false;
 
-	public function __construct( private Repository $repository, private Runner $runner ) {}
+	public function __construct( private Repository $repository ) {}
 
 	public function register(): void {
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_init', array( $this, 'handle' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
-		add_action( 'admin_notices', array( $this, 'recovery_notice' ) );
+	}
+
+	public static function management_request(): bool {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only route allow-list.
+		return is_admin() && isset( $_GET['page'] ) && is_string( $_GET['page'] ) && in_array( $_GET['page'], array( 'wpsstudio', 'wpsstudio-new' ), true );
 	}
 
 	public function menu(): void {
@@ -28,7 +33,7 @@ final class Admin {
 	}
 
 	public function handle(): void {
-		if ( ! Runner::management_request() ) {
+		if ( ! self::management_request() ) {
 			return;
 		}
 		if ( ! Permissions::can_manage() ) {
@@ -36,24 +41,24 @@ final class Admin {
 		}
 		nocache_headers();
 		if ( ! Installer::ready() && ! Installer::install() ) {
-			$this->error = new \WP_Error( 'database', __( 'The snippet database is unavailable. No snippets will run.', 'wp-snippet-studio' ) );
+			$this->error = new \WP_Error( 'database', __( 'The snippet database is unavailable. Content output is paused.', 'wp-snippet-studio' ) );
 			return;
 		}
 		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
 			return;
 		}
-		// All source is handled only after authorization. WordPress slashes request data.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Explicit verification immediately below.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Explicit action/record nonce verification below.
 		$post   = wp_unslash( $_POST );
 		$action = isset( $post['wpsstudio_action'] ) && is_string( $post['wpsstudio_action'] ) ? $post['wpsstudio_action'] : '';
-		$id     = Validator::id( $post['id'] ?? '' );
+		$raw_id = $post['id'] ?? null;
+		$id     = Validator::id( $raw_id );
 		$nonce  = isset( $post['_wpnonce'] ) && is_string( $post['_wpnonce'] ) ? $post['_wpnonce'] : '';
-		if ( ! in_array( $action, array( 'save', 'activate', 'deactivate', 'priority', 'delete', 'run', 'safe_on', 'safe_off' ), true ) || ! wp_verify_nonce( $nonce, 'wpsstudio_' . $action . '_' . $id ) ) {
+		if ( ! is_string( $raw_id ) || ( '0' !== $raw_id && ! $id ) || ! in_array( $action, array( 'save', 'activate', 'deactivate', 'delete', 'pause', 'resume' ), true ) || ! wp_verify_nonce( $nonce, 'wpsstudio_' . $action . '_' . $id ) ) {
 			wp_die( esc_html__( 'The security check failed. Reload this page and try again.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		$revision = Validator::id( $post['revision'] ?? '' );
-		if ( 'save' === $action ) {
-			$input  = array_intersect_key( $post, array_flip( array( 'title', 'description', 'code', 'type', 'scope', 'priority' ) ) );
+		if ( 'save' === $action && ( ( $id && $revision ) || ( 0 === $id && '0' === ( $post['revision'] ?? null ) ) ) ) {
+			$input  = array_intersect_key( $post, array_flip( array( 'title', 'description', 'code', 'type' ) ) );
 			$result = $this->repository->save( $input, $id, $revision );
 			if ( is_wp_error( $result ) ) {
 				$this->draft = array_merge(
@@ -75,23 +80,22 @@ final class Admin {
 				);
 				exit;
 			}
-		} elseif ( 'safe_on' === $action || 'safe_off' === $action ) {
-			if ( 'safe_off' === $action && defined( 'WPSSTUDIO_SAFE_MODE' ) && WPSSTUDIO_SAFE_MODE ) {
-				$result = new \WP_Error( 'constant', __( 'Remove WPSSTUDIO_SAFE_MODE from wp-config.php before turning Safe Mode off here.', 'wp-snippet-studio' ) );
+		} elseif ( in_array( $action, array( 'pause', 'resume' ), true ) && 0 === $id ) {
+			if ( 'resume' === $action && defined( 'WPSSTUDIO_SAFE_MODE' ) && WPSSTUDIO_SAFE_MODE ) {
+				$result = new \WP_Error( 'constant', __( 'Remove WPSSTUDIO_SAFE_MODE from wp-config.php before resuming output here.', 'wp-snippet-studio' ) );
 			} else {
-				update_option( 'wpsstudio_safe_mode', 'safe_on' === $action ? '1' : '0', false );
-				$result = true;
+				$value = 'pause' === $action ? '1' : '0';
+				update_option( 'wpsstudio_safe_mode', $value, false );
+				$result = get_option( 'wpsstudio_safe_mode' ) === $value ? true : new \WP_Error( 'database', __( 'The output setting could not be saved.', 'wp-snippet-studio' ) );
 			}
-		} elseif ( ! $id || ! $revision ) {
+		} elseif ( ! $id || ! $revision || 'save' === $action ) {
 			$result = new \WP_Error( 'invalid', __( 'A valid snippet and revision are required.', 'wp-snippet-studio' ) );
 		} elseif ( 'activate' === $action || 'deactivate' === $action ) {
 			$result = $this->repository->status( $id, $revision, 'activate' === $action );
-		} elseif ( 'priority' === $action ) {
-			$result = $this->repository->priority( $id, $revision, $post['priority'] ?? '' );
 		} elseif ( 'delete' === $action ) {
 			$result = $this->repository->delete( $id, $revision );
 		} else {
-			$result = $this->runner->run_manual( $id, $revision );
+			$result = new \WP_Error( 'invalid', __( 'The requested action is invalid.', 'wp-snippet-studio' ) );
 		}
 		if ( is_wp_error( $result ) ) {
 			$this->error = $result;
@@ -101,22 +105,15 @@ final class Admin {
 		exit;
 	}
 
-	public function recovery_notice(): void {
-		if ( Runner::safe_mode() && Permissions::can_manage() && ! Runner::management_request() ) {
-			echo '<div class="notice notice-warning"><p>' . esc_html__( 'WP Snippet Studio Safe Mode is on. Snippets are paused.', 'wp-snippet-studio' ) . ' <a href="' . esc_url( $this->url() ) . '">' . esc_html__( 'Review snippets', 'wp-snippet-studio' ) . '</a></p></div>';
-		}
-	}
-
 	public function assets(): void {
-		if ( ! Runner::management_request() || ! Permissions::can_manage() ) {
+		if ( ! self::management_request() || ! Permissions::can_manage() ) {
 			return;
 		}
-		wp_enqueue_style( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.css', array(), WPSSTUDIO_VERSION );
-		wp_enqueue_script( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.js', array(), WPSSTUDIO_VERSION, true );
+		$dependencies = array( 'wp-a11y' );
 		if ( $this->editing() ) {
-			$settings = wp_enqueue_code_editor(
+			$settings             = wp_enqueue_code_editor(
 				array(
-					'type'       => 'application/x-httpd-php',
+					'type'       => 'text/html',
 					'codemirror' => array(
 						'lineNumbers'    => true,
 						'indentUnit'     => 4,
@@ -125,10 +122,13 @@ final class Admin {
 					),
 				)
 			);
-			if ( $settings ) {
-				wp_add_inline_script( 'wpsstudio-admin', 'window.wpsstudioEditorSettings = ' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';', 'before' );
+			$this->editor_enabled = false !== $settings;
+			if ( $this->editor_enabled ) {
+				$dependencies[] = 'code-editor';
 			}
 		}
+		wp_enqueue_style( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.css', array(), WPSSTUDIO_VERSION );
+		wp_enqueue_script( 'wpsstudio-admin', WPSSTUDIO_URL . 'assets/admin.js', $dependencies, WPSSTUDIO_VERSION, true );
 	}
 
 	private function editing(): bool {
@@ -143,24 +143,30 @@ final class Admin {
 			'title'       => '',
 			'description' => '',
 			'code'        => '',
-			'type'        => 'php',
-			'scope'       => 'everywhere',
-			'priority'    => 10,
+			'type'        => 'html',
 			'status'      => 'inactive',
-			'last_run_at' => null,
-			'last_error'  => '',
+			'signature'   => '',
 		);
 	}
 
 	public function render(): void {
 		if ( ! Permissions::can_manage() ) {
-			wp_die( esc_html__( 'You do not have permission to view snippet source.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'You do not have permission to view snippet content.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		$editing = $this->editing();
-		$counts  = Installer::ready() ? $this->repository->counts() : array_fill_keys( array_merge( Validator::TYPES, array( 'all' ) ), 0 );
+		$counts  = Installer::ready() ? $this->repository->counts() : array(
+			'html' => 0,
+			'text' => 0,
+			'all'  => 0,
+		);
+		$legacy  = Installer::ready() ? $this->repository->legacy_count() : 0;
 		if ( $editing ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only record lookup behind capability gate.
-			$id      = Validator::id( $_GET['id'] ?? '' );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Capability-gated read-only lookup.
+			$id = Validator::id( $_GET['id'] ?? '' );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Invalid read-only IDs must not become new records.
+			if ( isset( $_GET['id'] ) && ! $id ) {
+				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
+			}
 			$snippet = $this->draft ?? ( $id ? $this->repository->get( $id ) : $this->defaults() );
 			if ( ! $snippet ) {
 				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
@@ -168,7 +174,7 @@ final class Admin {
 		} else {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Allow-listed read-only filtering.
 			$type = isset( $_GET['type'] ) && is_string( $_GET['type'] ) && in_array( $_GET['type'], Validator::TYPES, true ) ? $_GET['type'] : '';
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only pagination.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Strict read-only pagination.
 			$current_page = max( 1, Validator::id( $_GET['paged'] ?? '' ) );
 			$total        = $counts[ $type ? $type : 'all' ];
 			$pages        = max( 1, (int) ceil( $total / 25 ) );
@@ -187,17 +193,5 @@ final class Admin {
 	private function fields( string $action, int $id = 0, int $revision = 0 ): void {
 		wp_nonce_field( 'wpsstudio_' . $action . '_' . $id, '_wpnonce', false );
 		echo '<input type="hidden" name="wpsstudio_action" value="' . esc_attr( $action ) . '"><input type="hidden" name="id" value="' . esc_attr( (string) $id ) . '"><input type="hidden" name="revision" value="' . esc_attr( (string) $revision ) . '">';
-	}
-
-	private function scope_label( array $row ): string {
-		if ( 'php' !== $row['type'] ) {
-			return in_array( $row['type'], array( 'html', 'text' ), true ) ? __( 'Shortcode', 'wp-snippet-studio' ) : ( 'css' === $row['type'] ? __( 'Frontend · Head', 'wp-snippet-studio' ) : __( 'Frontend · Footer', 'wp-snippet-studio' ) );
-		}
-		return array(
-			'everywhere' => __( 'Everywhere', 'wp-snippet-studio' ),
-			'frontend'   => __( 'Frontend only', 'wp-snippet-studio' ),
-			'admin'      => __( 'Admin only', 'wp-snippet-studio' ),
-			'manual'     => __( 'Run once manually', 'wp-snippet-studio' ),
-		)[ $row['scope'] ] ?? __( 'Review required', 'wp-snippet-studio' );
 	}
 }

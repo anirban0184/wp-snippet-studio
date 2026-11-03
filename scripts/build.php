@@ -11,7 +11,7 @@ $version = $match[1] ?? '';
 if ( ! preg_match( '/^\d+\.\d+\.\d+$/D', $version ) ) {
 	throw new RuntimeException( 'Invalid plugin version.' );
 }
-$files = array( 'wp-snippet-studio.php', 'uninstall.php', 'readme.txt', 'README.md', 'LICENSE', 'CHANGELOG.md', 'SECURITY.md', 'docs/security-and-recovery.md', 'docs/development.md', 'docs/validation.md' );
+$files = array( 'wp-snippet-studio.php', 'uninstall.php', 'readme.txt', 'LICENSE' );
 foreach ( array( 'includes', 'admin', 'assets' ) as $directory ) {
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root . '/' . $directory, FilesystemIterator::SKIP_DOTS ) );
 	foreach ( $iterator as $file ) {
