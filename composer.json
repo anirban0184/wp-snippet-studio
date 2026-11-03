@@ -1,6 +1,6 @@
 {
   "name": "glowingcoders/wp-snippet-studio",
-  "description": "Local trusted code snippets for single-site WordPress.",
+  "description": "Reusable reviewed HTML and plain text for single-site WordPress.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": { "php": ">=8.2" },

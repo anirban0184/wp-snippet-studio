@@ -1,5 +1,5 @@
 <?php
-/** Shared protected page header. @package WPSnippetStudio */
+/** Protected content-management header. @package WPSnippetStudio */
 
 namespace GlowingCoders\WPSnippetStudio;
 
@@ -9,34 +9,36 @@ defined( 'ABSPATH' ) || exit;
 	<div class="wpsstudio-heading">
 		<h1><span class="dashicons dashicons-editor-code" aria-hidden="true"></span> WP Snippet Studio <span class="wpsstudio-version"><?php echo esc_html( WPSSTUDIO_VERSION ); ?></span></h1>
 		<form method="post" action="<?php echo esc_url( $this->url() ); ?>">
-			<?php $this->fields( Runner::safe_mode() ? 'safe_off' : 'safe_on' ); ?>
+			<?php $this->fields( Renderer::paused() ? 'resume' : 'pause' ); ?>
 			<button class="button"
 			<?php
-			if ( Runner::safe_mode() ) :
+			if ( Renderer::paused() ) :
 				?>
-				data-confirm="<?php esc_attr_e( 'Resume all active snippets? Review problematic snippets first.', 'wp-snippet-studio' ); ?>"<?php endif; ?>><?php echo Runner::safe_mode() ? esc_html__( 'Turn Safe Mode off', 'wp-snippet-studio' ) : esc_html__( 'Enable Safe Mode', 'wp-snippet-studio' ); ?></button>
+				data-confirm="<?php esc_attr_e( 'Resume output from all active content snippets?', 'wp-snippet-studio' ); ?>"<?php endif; ?>><?php echo Renderer::paused() ? esc_html__( 'Resume output', 'wp-snippet-studio' ) : esc_html__( 'Pause all output', 'wp-snippet-studio' ); ?></button>
 		</form>
 	</div>
-	<?php if ( Runner::safe_mode() ) : ?>
-		<div class="notice notice-warning inline"><p><?php esc_html_e( 'Safe Mode is on. All snippet execution and shortcode output are paused. You can still review and edit snippets.', 'wp-snippet-studio' ); ?></p></div>
+	<p class="wpsstudio-subtitle"><?php esc_html_e( 'Reusable HTML and plain text. Save inactive, review, then activate where needed.', 'wp-snippet-studio' ); ?></p>
+	<?php if ( Renderer::paused() ) : ?>
+		<div class="notice notice-warning inline"><p><?php esc_html_e( 'All snippet output is paused. Active settings are preserved and snippets remain editable.', 'wp-snippet-studio' ); ?></p></div>
+	<?php endif; ?>
+	<?php if ( $wpsstudio_legacy ) : ?>
+		<div class="notice notice-info inline"><p><?php esc_html_e( 'Records from an earlier development build are preserved in the database. Unsupported types are unavailable in this content-only edition. Existing HTML/text content requires review before activation.', 'wp-snippet-studio' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( $this->error ) : ?>
 		<div class="notice notice-error inline" role="alert"><p><?php echo esc_html( $this->error->get_error_message() ); ?></p></div>
 	<?php endif; ?>
 	<?php
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Fixed notice allow-list, never source or arbitrary messages.
-	$notice   = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? $_GET['notice'] : '';
-	$messages = array(
-		'saved'      => __( 'Snippet saved inactive. Review it, then activate it from All Snippets.', 'wp-snippet-studio' ),
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Fixed read-only notice allow-list.
+	$wpsstudio_notice   = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? sanitize_key( wp_unslash( $_GET['notice'] ) ) : '';
+	$wpsstudio_messages = array(
+		'saved'      => __( 'Snippet saved inactive. Review the filtered content, then activate it from All Snippets.', 'wp-snippet-studio' ),
 		'activate'   => __( 'Snippet activated.', 'wp-snippet-studio' ),
 		'deactivate' => __( 'Snippet deactivated.', 'wp-snippet-studio' ),
-		'priority'   => __( 'Priority updated.', 'wp-snippet-studio' ),
 		'delete'     => __( 'Snippet deleted.', 'wp-snippet-studio' ),
-		'run'        => __( 'Manual attempt completed. The snippet remains inactive.', 'wp-snippet-studio' ),
-		'safe_on'    => __( 'Safe Mode enabled.', 'wp-snippet-studio' ),
-		'safe_off'   => __( 'Safe Mode disabled.', 'wp-snippet-studio' ),
+		'pause'      => __( 'All snippet output paused.', 'wp-snippet-studio' ),
+		'resume'     => __( 'Snippet output resumed.', 'wp-snippet-studio' ),
 	);
-	if ( isset( $messages[ $notice ] ) ) :
+	if ( isset( $wpsstudio_messages[ $wpsstudio_notice ] ) ) :
 		?>
-		<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $messages[ $notice ] ); ?></p></div>
+		<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $wpsstudio_messages[ $wpsstudio_notice ] ); ?></p></div>
 	<?php endif; ?>

@@ -1,11 +1,10 @@
 {
   "name": "wp-snippet-studio-development",
   "private": true,
-  "version": "0.1.1",
-  "description": "Development checks only; no JavaScript dependencies are shipped in the plugin.",
+  "version": "1.0.0",
+  "description": "Development checks for the HTML/text edition; no npm dependencies are shipped.",
   "scripts": {
-    "test:browser": "node tests/browser.mjs",
-    "test:pagination": "node tests/pagination-browser.mjs"
+    "test:browser": "node tests/browser.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

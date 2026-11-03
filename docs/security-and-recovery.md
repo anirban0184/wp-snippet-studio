@@ -1,71 +1,45 @@
 # Security and recovery
 
-## Before installation
+## Content boundary
 
-Use a single-site **staging** installation, a verified database/file backup and a working hosting/file-access recovery route. WordPress 6.4+ and PHP 8.2+ are the compatibility floors; use actively maintained, patched WordPress and PHP versions in production. After glowingcoders.com was upgraded to PHP 8.3.36, the owner explicitly authorized a controlled live test without a backup on 2026-11-03. That pass is documented in [validation](validation.md); it did not verify backup/restore or hosting/file recovery and did not run the destructive test suite on production.
+Only HTML and text are accepted. HTML is filtered on save and again on output using a fixed allow-list for formatting, headings, lists, links, images and tables. Script/style tags, inline style attributes, forms, iframes, SVG, event handlers and unsafe URL protocols are excluded. Plain text is escaped with line breaks preserved. Neither type interprets PHP or expands nested shortcodes.
 
-PHP and JavaScript authors must be trusted like plugin developers. PHP executes with the site's PHP permissions, including database and filesystem access. JavaScript executes in visitors' browsers. Syntax validation, signatures and recovery **do not sandbox code** or make malicious code safe.
+Active content is public wherever its shortcode is placed. Do not store secrets or treat shortcodes as an access-control mechanism. Administrators may intentionally include external image URLs; visitors' browsers then request those images like ordinary website content. The plugin itself has no remote service, telemetry or executable-code download.
 
-## Access and source approval
+## Management and approvals
 
-- Management requires **both** `manage_options` and `edit_plugins`, single-site WordPress and permitted file modifications. `DISALLOW_FILE_EDIT`, `DISALLOW_FILE_MODS` and the WordPress file-modification policy are respected.
-- Every mutation uses authenticated POST, a per-action/per-snippet WordPress nonce and a fresh revision. A nonce is not the authorization check. No public PHP-execution API, source API or remote snippet download exists.
-- New snippets and edits save **inactive**. Review source before activation. Every save deactivates the snippet, including previously active ones. Inline priority updates preserve status.
-- Installation-bound HMAC signatures protect approved source and execution settings against unsigned record changes. Unverified rows cannot run. After salt rotation or migration with different salts, review and save affected snippets inactive to approve them again.
-- Signatures detect record changes; they do not protect a fully compromised server, replace secure WordPress salts, encrypt source at rest, or guarantee protection from database replay/backup restoration. A database backup includes snippet source. Do not put credentials in source when secure configuration can supply them.
-- Database write errors from source-bearing queries are suppressed in this plugin's database layer to avoid logging SQL containing code. Only generic failure categories are stored. Hosting/PHP/WordPress logs are controlled by the site owner.
+Management requires `manage_options` on single-site WordPress. Every mutation uses authenticated POST with an action-specific, record-specific WordPress nonce. A nonce is not the capability check. HTML/text authoring does not depend on file-editing permissions and cannot change executable files.
 
-## Execution behavior
+New content and all edits save inactive. Separate activation requires valid, installation-bound HMAC approval over the record's identity, content, type, status and revision. A tampered, unsupported, inactive or unverified record produces no shortcode output. Deactivating tampered content does not approve it. Source review and an inactive save are required before activation.
 
-Automatic PHP loads at `plugins_loaded` priority **20**, after active plugin files and before the theme. Use WordPress hooks for work that needs later lifecycle stages; theme functions and main-query conditional tags are not yet available at snippet load time. Loading order is ascending priority, then ascending ID. It does not change priorities specified inside a snippet's own hooks. PHP output on successful automatic execution is allowed; use hooks to output at the intended location.
+Revision checks and compare-and-swap updates prevent stale edits, status changes and deletions. Signatures do not encrypt content, protect a fully compromised server or prevent replay of an older database backup. Salt changes require review and new inactive saves. Content-bearing database write failures and read failures are suppressed in this plugin's query layer to avoid public SQL diagnostics and content leakage through database logging.
 
-| PHP run location | Behavior |
-| --- | --- |
-| Everywhere | Ordinary frontend/admin requests, REST, cron and CLI. Recovery routes below are excluded. |
-| Frontend only | Non-admin web requests, excluding detected REST routes, cron, CLI and recovery routes. It is request-level targeting, not a page-content condition engine. |
-| Admin only | Requests where `is_admin()` is true, including admin AJAX. Plugin management and login recovery routes are excluded. |
-| Run once manually | Explicit authorized POST only; remains inactive and never loads automatically. |
+## Pause and recovery
 
-**Login (`wp-login.php`) and this plugin's management pages always bypass automatic PHP**, so a snippet cannot lock the normal recovery path through its own execution. This also means PHP snippets cannot customize login in 0.1.1. Other plugins, WordPress or infrastructure can still prevent login/admin access.
+Use **Pause all output** from the dashboard to suppress all shortcode output while preserving active settings. Existing cached pages and already-running requests cannot be revoked by a toggle. Purge caches when needed.
 
-PHP source must be a code body without `<?php`, `?>`, namespace declarations or `__halt_compiler`. Tokenizer parsing checks syntax without execution and fails closed if unavailable. It does not prove logical safety, resource bounds or correctness of later callbacks.
+If dashboard access is unavailable, hosting/file access can set this above the stop-editing line in `wp-config.php`:
 
-Active CSS loads through WordPress enqueue APIs in the frontend head; active JavaScript loads in the footer. Themes must call the normal head/footer hooks. No automatic jQuery dependency is added. Enter raw CSS/JS without style/script tags; tag breakouts are rejected even inside strings/comments. Browser language syntax, CSP compatibility and code effects still need staging testing. Already cached pages/assets and already running requests cannot be revoked by a toggle; purge the site's caches when needed.
+```php
+define( 'WPSSTUDIO_SAFE_MODE', true );
+```
 
-Only active, verified **HTML/text** can render through `[wpsstudio id="12"]`. HTML is filtered to WordPress post-safe markup on save and output. It is not a script/tracking-code insertion channel. Text is escaped and line breaks preserved. Neither evaluates nested shortcodes or PHP. Inactive/missing/invalid IDs and executable snippet types return an empty string. These content snippets are public wherever an author places their shortcode; they are not a private-content access system.
+The constant overrides the dashboard. Remove it before resuming output. Deactivation also stops shortcode rendering without deleting data. Keep ordinary production backups and an appropriate hosting recovery route.
 
-## Manual attempts and concurrency
+## Development-build migration
 
-Run once claims the record with a revision-and-signature compare-and-swap **before** executing. A failed/interrupted run remains attempted; duplicate or concurrent POSTs cannot repeat that claim. The last attempted source hash prevents repeating unchanged source, including after metadata edits. Changing source allows another attempt. This is not a permanent history of every prior code version and is not a rollback mechanism. Database restoration, deleting/recreating a snippet or changing its source can permit execution again. Manual direct output is discarded; effects such as data writes remain. Manual code runs during the protected admin POST, after `init` has already fired, so maintenance work should execute directly or use an appropriate later hook.
+Schema version 2 preserves the existing `{prefix}wpsstudio_snippets` table and compatibility columns. All older records become inactive, lose their old approval signatures and receive a newer revision. No content or manual-attempt receipt is deleted.
 
-Stale editor/status/priority/delete forms are rejected. This protects against overwriting a newer save, not against the effects of an already executing request or malicious privileged code.
+HTML/text records require review and a save under the new allow-list. Other types remain stored but are excluded from management and shortcode queries. There is no flag, dormant execution engine or automatic import that can enable them. Unknown future schema versions fail closed rather than being downgraded. The legacy development runtime is archived in GitHub, not shipped in the installation ZIP.
 
-## Recover a broken site
+## Retention
 
-1. Open `https://YOUR-SITE/wp-admin/admin.php?page=wpsstudio` directly. Log in if needed. This management route and login skip automatic PHP.
-2. Enable **Safe Mode**. It pauses automatic PHP, CSS/JS output, HTML/text shortcodes and manual execution on new requests. Snippets remain editable and their active flags remain stored.
-3. Disable or delete the problematic snippet. Review source and save inactive before retrying. Turn Safe Mode off only after reviewing all active code.
-4. If the dashboard cannot be reached, add this before the stop-editing line in `wp-config.php` using hosting/file access:
+Deactivation, replacement and ordinary uninstall preserve data. Individual Delete is permanent; there is no Trash UI for snippets. Removing or disabling a snippet does not edit posts that contain its shortcode; inactive or missing content returns an empty string while the plugin is active.
 
-   ```php
-   define( 'WPSSTUDIO_SAFE_MODE', true );
-   ```
-
-   The constant takes precedence over the dashboard switch. Remove it after fixing code; a fatal may also have enabled the database Safe Mode option, which then needs turning off in the dashboard.
-5. If needed, deactivate with `wp plugin deactivate wp-snippet-studio --skip-plugins=wp-snippet-studio` or rename the plugin directory using hosting/file access. Deactivation preserves snippets.
-
-Immediate caught PHP exceptions quarantine that revision and enable Safe Mode. An immediate detected fatal also attempts quarantine and enables Safe Mode. A later fatal originating in a callback declared in this runner's evaluated source enables global Safe Mode for the next request. Recovery runs after the failing request has already failed.
-
-This is **best effort**: shutdown cannot reliably attribute every error in external functions, undo side effects, stop all loops, handle a killed process, or recover from every memory/hosting failure. `exit`/`die` are not caught exceptions. File-based Safe Mode and backups remain necessary.
-
-Disable public PHP error display on production (`WP_DEBUG_DISPLAY` false and appropriate hosting `display_errors` policy). If logging is enabled, store logs outside the document root with access restrictions. WordPress/PHP can log uncaught deferred errors; do not expose `debug.log`, database backups or source archives publicly.
-
-## Data retention
-
-The custom table is `$wpdb->prefix . 'wpsstudio_snippets'`. Deactivation, upgrades and ordinary deletion/uninstall preserve it. To permanently remove the table and this plugin's options during a WordPress uninstall, **back up first** and explicitly set:
+Permanent data removal during uninstall requires an explicit configuration opt-in:
 
 ```php
 define( 'WPSSTUDIO_DELETE_DATA', true );
 ```
 
-Remove that constant afterward. There is no trash/revision/restore UI in 0.1.1. Deleting an individual snippet is immediate and cannot undo its earlier effects. Multisite activation and execution are deferred.
+Back up first. This drops the entire plugin table, including preserved legacy records, and removes its options. Remove the constant afterward. Multisite is not supported. Keep public PHP error display disabled and private logs outside the document root.

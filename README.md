@@ -1,129 +1,60 @@
 # WP Snippet Studio
 
-A free WordPress manager for trusted PHP, CSS, JavaScript, HTML and reusable text snippets, maintained by [Glowing Coders](https://glowingcoders.com/).
+Reusable **HTML and plain text** for single-site WordPress, maintained by [Glowing Coders](https://glowingcoders.com/).
 
-| Version | 0.1.1 development build |
+| Item | Value |
 | --- | --- |
-| Status | Core implemented; controlled live checks passed; stable distribution pending |
-| Requirements | Single-site WordPress 6.4+, PHP 8.2+ |
+| Name / slug / text domain | WP Snippet Studio / `wp-snippet-studio` |
+| Version | 1.0.0 submission candidate |
+| Requirements | WordPress 6.4+, PHP 8.2+; single site |
 | License | GPL-2.0-or-later |
-| Slug / text domain | `wp-snippet-studio` |
+| Directory status | Not submitted or approved yet |
 
-This remains a development build. Version 0.1.1 was installed on glowingcoders.com for controlled, owner-authorized live testing on 2026-11-03. It has not been submitted to WordPress.org or published as a stable customer release. All implemented features are free.
+The main product is now the HTML/text edition requested for WordPress.org submission. The earlier full development build is preserved on [`legacy/full-snippets-0.1.1`](https://github.com/anirban0184/wp-snippet-studio/tree/legacy/full-snippets-0.1.1). Its old test results do not certify this new implementation. The existing live 0.1.1 installation has not been replaced during this work.
 
-## Available in 0.1.1
+## Included features
 
-- Create snippets without an artificial count limit; edit and permanently delete them.
-- PHP, CSS, JavaScript, filtered HTML and escaped reusable text.
-- Snippet titles and descriptions; new snippets and every edit save **inactive**.
-- Individual activation/deactivation with a separate trusted-code review step.
-- PHP run locations: everywhere, frontend only, admin only, or one manual attempt per changed source.
-- Priority defaults to 10, allows -9999 through 9999, and loads lower values first, then lower IDs.
-- Active CSS loads in the frontend head; JavaScript loads in the footer through WordPress enqueue APIs.
-- Active HTML/text renders through `[wpsstudio id="12"]`. PHP cannot be run through a public shortcode.
-- A native WordPress code editor with plain-text fallback, separate settings and a **Save inactive** button.
-- Compact type navigation: All Snippets, PHP, CSS, JS, HTML and Text.
-- One horizontal table: **Name | Type | Run location | Priority | Status | Actions**. It keeps that arrangement on small screens using horizontal scrolling.
-- Inline priority updates, status switches and visible Edit/Delete/Run once actions.
-- Safe Mode, protected management/login recovery routes and best-effort failure recovery.
-- Data retention across theme changes, plugin updates, deactivation and ordinary uninstall.
+- Unlimited snippet count, titles and descriptions; 1 MB maximum per content body.
+- HTML filtered against an explicit allow-list; plain text escaped with line breaks preserved.
+- New snippets and edits save inactive. Activation is a separate review step.
+- `[wpsstudio id="12"]` displays approved active content; nested shortcodes are not evaluated.
+- One horizontal **Name | Type | Shortcode | Status | Actions** table, with copyable shortcodes, type filters, pagination and individual controls.
+- Native WordPress HTML/text editor, with a plain textarea fallback when syntax highlighting is disabled.
+- Pause all output while keeping active settings, plus the `WPSSTUDIO_SAFE_MODE` configuration override.
+- Administrator capability checks, authenticated POSTs, per-action/per-record nonces, content approval signatures and stale revision protection.
+- Data retention across plugin deactivation, replacement and ordinary uninstall.
 
-The list paginates 25 rows. HTML/text appear at their shortcode position; priority does not reposition them. Manual snippets stay inactive. Priority controls this plugin's loading order, not hook priorities inside your code. Search, tags, bulk actions and import/export are deferred.
+There is no PHP or user-JavaScript execution, CSS injection, manual code runner, arbitrary file editor, remote code loader, external updater, telemetry, paid gate or software installer. This is a lasting content-only scope, not a temporary feature switch for review. Priority and run-location controls are absent because content appears where its shortcode is placed.
 
-## Quick start on staging
+## Upgrade behavior and database
 
-1. Back up the disposable/staging site's database and files, and confirm hosting/file access for recovery.
-2. Run `php scripts/build.php` in a development checkout, or use the generated installation ZIP from a verified build. GitHub's source archive includes development files; prefer the packaged ZIP.
-3. Upload `wp-snippet-studio-0.1.1.zip` through Plugins → Add Plugin → Upload Plugin and activate as a trusted administrator.
-4. Open **Snippet Studio → Add New**, choose type/location/priority and save inactive.
-5. Review the source, then activate from All Snippets. For HTML/text, place the displayed shortcode in your content.
+The table remains **`$wpdb->prefix . 'wpsstudio_snippets'`**. Compatible legacy columns stay in the additive schema so development records are not destroyed. They do not activate any executable functionality.
 
-The live check of glowingcoders.com on **2026-11-03** confirmed **WordPress 7.1.4 / PHP 8.3.36 / LiteSpeed**, with Hello Elementor, Elementor 4.2.2 and Elementor Pro 4.1.3. Installation, all five types, PHP scopes, priority, shortcodes, Safe Mode, manual replay protection and deactivation/reactivation checks passed. All eight QA snippets were left inactive, the unpublished preview page was moved to recoverable Trash, and Safe Mode was restored to off. The plugin remains active at 0.1.1.
+Schema version 2 deactivates prior records, clears their approvals and advances revisions without changing original content. Existing HTML/text can be reviewed, saved inactive and activated. Other types are excluded from management and shortcode lookups and remain stored as inert legacy data. No live upgrade is performed automatically by GitHub.
 
-The owner requested this production test without a backup. No backup/restore or hosting/file recovery was verified. Destructive fixtures and deliberate fatal-error tests were not run on the live site. This bounded check does not establish every Elementor feature, integration or caching scenario. See the [live validation record](docs/validation.md#011--controlled-live-smoke-test-2026-11-03).
+Only administrators with `manage_options` can manage content. HTML/text editing remains available when WordPress file editing is disabled because this edition cannot modify executable files or run user code. See [security and recovery](docs/security-and-recovery.md).
 
-## Execution and content rules
+## Build and validation
 
-Automatic PHP loads at `plugins_loaded` priority 20, before the theme. Use hooks for later work. Everywhere includes ordinary frontend/admin requests, REST, cron and CLI. Frontend excludes detected REST/cron/CLI requests; admin follows `is_admin()`, including admin AJAX. Login and the plugin's own management routes always bypass automatic PHP for recovery.
+Run `php scripts/build.php` to produce `build/wp-snippet-studio-1.0.0.zip` and its SHA-256 checksum. The allow-list includes runtime files, `readme.txt` and the license only; development tests, tools, logs, screenshots and credentials are excluded.
 
-Enter PHP bodies without PHP tags or namespaces. CSS/JS must omit style/script tags. JavaScript receives no automatic jQuery dependency. HTML is filtered to WordPress post-safe markup; text is escaped with line breaks preserved. Nested shortcodes are not evaluated.
+All four jobs passed in [validation run 41612260002](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002): quality, PHP 8.2 / WordPress 6.4, PHP 8.3 / WordPress 7.1.4 and PHP 8.4 / WordPress 7.1.4. The suites include 68 integration checks per combination, 46 browser/HTTP/responsive checks on each browser-tested combination, and package upgrade/retention checks.
 
-A manual attempt is atomically recorded before execution. Duplicate/concurrent submissions and unchanged previously attempted source are blocked. Failed/interrupted attempts still count; source changes allow a new attempt. This is not exactly-once delivery, a permanent execution history or a rollback mechanism.
+The [submission guide](docs/wordpress-org-submission.md) identifies the exact ZIP, checksum and remaining upload step. The official scan currently reports three naming warnings for the retained `WP` prefix, with no errors; these require reviewer resolution and are not represented as a clean scan.
 
-## Database and architecture
+The [development guide](docs/development.md) describes isolated test commands and actual package upgrade/uninstall checks. Never run the destructive fixtures on production. The [validation log](docs/validation.md) records actual results; checks being configured is not evidence that they passed.
 
-Snippets live inside the existing WordPress database in **`$wpdb->prefix . 'wpsstudio_snippets'`**, e.g. `wp_wpsstudio_snippets`. This is a custom table, not a separate database.
-
-The versioned schema stores metadata, source, type/scope/status, priority, UTC timestamps, revision, an installation-bound integrity signature and a manual-attempt receipt. Prepared queries protect data and identifiers. Revision checks reject stale writes; atomic claims protect manual attempts.
-
-[Development and database details](docs/development.md) describe every code directory, schema field, lifecycle stage, test setup and build process.
-
-## Security and recovery
-
-Security is a mandatory release criterion. Known exploitable vulnerabilities block a public release.
-
-Management checks **manage_options + edit_plugins** and WordPress file-edit/modification restrictions. Every mutation requires authenticated POST, the correct action/snippet nonce and a fresh revision. There is no public source/PHP endpoint, remote executable-code download, telemetry or account requirement.
-
-PHP parsing validates syntax without running it and fails closed if tokenizer is unavailable. Signed approvals detect altered source/settings and fail closed on unverified records; salt changes require explicit source review and an inactive save. These signatures do not encrypt source, sandbox code or protect a fully compromised server.
-
-PHP executes with the website's permissions, and JavaScript executes in visitors' browsers. Only trusted authors should manage it. Immediate caught exceptions quarantine the revision and enable Safe Mode. Fatal recovery is best effort; it cannot undo effects or handle every external callback, loop, memory/hosting failure or killed process.
-
-For recovery, open `/wp-admin/admin.php?page=wpsstudio` directly and enable Safe Mode. The fallback is adding this above the stop-editing line in `wp-config.php`:
-
-```php
-define( 'WPSSTUDIO_SAFE_MODE', true );
-```
-
-Safe Mode pauses PHP, CSS/JS, shortcodes and manual execution on new requests. Keep public PHP error display disabled and logs outside the public document root.
-
-Read [Security and recovery](docs/security-and-recovery.md) before using executable snippets. It covers exact scope rules, limitations, backups, cache behavior, file/CLI recovery and the explicit `WPSSTUDIO_DELETE_DATA` uninstall option. Ordinary uninstall preserves data. [SECURITY.md](SECURITY.md) explains private reporting.
-
-## Validation
-
-The 0.1.1 acceptance pass fixed frontend/REST request detection, mobile overflow under WordPress 6.4 styles and fatal-error snapshot loss during older core error rendering. The corrected source passes all GitHub CI jobs across PHP 8.2–8.4, including browser/recovery tests on WordPress 6.4 and 7.1.4. Versioned ZIP replacement preserves signed snippet records.
-
-Real-WordPress integration, browser, policy, syntax, WordPress coding/security standards, compatibility and dependency checks are included. [Validation results](docs/validation.md) record the environments actually tested and remaining limits. A configured CI matrix is not a claim that every job has passed.
-
-The [development guide](docs/development.md) explains how to reproduce checks. Tests are destructive to disposable fixtures and must never run on production/client databases. Neither passing tests nor this implementation is an independent security audit.
-
-## Six-section roadmap
-
-| Section | Focus | Status / scope |
-| --- | --- | --- |
-| 1. Core Snippets | First development build | Core types, metadata, scopes, priority, activation, compact dashboard and recovery implemented in 0.1.1; controlled live checks passed; public-release review pending |
-| 2. Snippet Management | Organization | Search, tags, duplicate, bulk actions, import/export deferred |
-| 3. Placement Controls | Content placement | Header/footer fields, page-level and before/after-content placement deferred |
-| 4. Conditions & Integrations | Targeting | Device/user/page conditions, WooCommerce, Elementor and Gutenberg integrations deferred |
-| 5. Safety & Agency Tools | Management | Advanced logs, revisions, backups, permissions and statistics deferred; basic security/recovery is already mandatory in section 1 |
-| 6. Advanced Platform | Scale | Multisite, generators, performance insights, private library and optional sync deferred |
-
-No paid features, Pro upsells, cloud library or tracking are included.
-
-## Version control, distribution and customer updates
-
-GitHub is the source of truth. Development uses a feature branch, checked changes, updated documentation/changelog and a pull request. The build script creates an allow-listed installation ZIP and checksum without development packages, tests or credentials. CI checks do not deploy or publish.
-
-For each public version: finish functional/security review, verify staging and backup/recovery, record validation and changelog, choose the distribution channel, tag/release the tested package, then monitor feedback. Installation ZIP replacement must preserve snippet data.
-
-**Customer auto-updates are not implemented.** Pushing code or creating a GitHub release does not by itself deliver updates in WordPress dashboards. An independent update service, transport/integrity policy and release workflow need their own implementation and testing.
-
-The [WordPress.org Plugin Developer FAQ](https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/) currently says new arbitrary-code insertion/execution plugins, including PHP/JavaScript editors, are not accepted. The current product scope is therefore not assumed eligible for a new directory listing. Distribution or a revised product scope remains an owner decision; approval is not guaranteed.
+The [WordPress.org FAQ](https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/) excludes new arbitrary-code execution plugins and permits securely handled HTML. The new edition removes executable features rather than hiding them. WordPress.org still decides eligibility, differentiation, review and approval. This repository does not claim directory approval or configured customer updates before publication.
 
 ## Project tracking
 
-| Item | Status |
+| Task | Status |
 | --- | --- |
-| Name, slug, text domain and GPL license | Complete |
-| GitHub repository | [anirban0184/wp-snippet-studio](https://github.com/anirban0184/wp-snippet-studio) |
-| 0.1.1 core code and compact dashboard | Implemented |
-| Database, access controls and recovery | Implemented; checks documented |
-| Build, checks and documentation | Included; results in validation log |
-| glowingcoders.com deployment | 0.1.1 installed; controlled live checks passed on 2026-11-03; QA snippets inactive |
-| Stable 1.0.0 release | Pending final release review and distribution decision |
-| WordPress.org listing / customer updater | Not configured |
+| Same plugin name, slug and text domain | Preserved |
+| Earlier full build | Archived on the legacy branch |
+| HTML/text edition | Implemented; content/security and responsive suites verified |
+| Production installation | Earlier 0.1.1 build; new edition not installed |
+| Submission package | 15-file 1.0.0 candidate built and verified; [download bundle](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002/artifacts/13220250275) |
+| WordPress.org submission / approval | Pending |
 
-See [CHANGELOG.md](CHANGELOG.md) for version changes.
-
-## License
-
-WP Snippet Studio is licensed under [GNU GPL version 2 or later](LICENSE).
+All included features are free. Future development must stay within the directory's rules. See [CHANGELOG.md](CHANGELOG.md) and [SECURITY.md](SECURITY.md).
