@@ -38,6 +38,8 @@ Only administrators with `manage_options` can manage content. HTML/text editing 
 
 Run `php scripts/build.php` to produce `build/wp-snippet-studio-1.0.0.zip` and its SHA-256 checksum. The allow-list includes runtime files, `readme.txt` and the license only; development tests, tools, logs, screenshots and credentials are excluded.
 
+The [submission guide](docs/wordpress-org-submission.md) identifies the exact ZIP, checksum and remaining upload step. The official scan currently reports three naming warnings for the retained `WP` prefix, with no errors; these require reviewer resolution and are not represented as a clean scan.
+
 The [development guide](docs/development.md) describes isolated test commands and actual package upgrade/uninstall checks. Never run the destructive fixtures on production. The [validation log](docs/validation.md) records actual results; checks being configured is not evidence that they passed.
 
 The [WordPress.org FAQ](https://developer.wordpress.org/plugins/wordpress-org/plugin-developer-faq/) excludes new arbitrary-code execution plugins and permits securely handled HTML. The new edition removes executable features rather than hiding them. WordPress.org still decides eligibility, differentiation, review and approval. This repository does not claim directory approval or configured customer updates before publication.
@@ -48,9 +50,9 @@ The [WordPress.org FAQ](https://developer.wordpress.org/plugins/wordpress-org/pl
 | --- | --- |
 | Same plugin name, slug and text domain | Preserved |
 | Earlier full build | Archived on the legacy branch |
-| HTML/text edition | Implemented; validation in progress |
+| HTML/text edition | Implemented; content/security and responsive suites verified |
 | Production installation | Earlier 0.1.1 build; new edition not installed |
-| Submission package | Build and verification in progress |
+| Submission package | 1.0.0 candidate built; final CI status tracked in validation log |
 | WordPress.org submission / approval | Pending |
 
 All included features are free. Future development must stay within the directory's rules. See [CHANGELOG.md](CHANGELOG.md) and [SECURITY.md](SECURITY.md).
