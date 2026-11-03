@@ -4,12 +4,12 @@ A free WordPress manager for trusted PHP, CSS, JavaScript, HTML and reusable tex
 
 | Version | 0.1.1 development build |
 | --- | --- |
-| Status | Core implemented; staging and distribution review pending |
+| Status | Core implemented; controlled live checks passed; stable distribution pending |
 | Requirements | Single-site WordPress 6.4+, PHP 8.2+ |
 | License | GPL-2.0-or-later |
 | Slug / text domain | `wp-snippet-studio` |
 
-This is a development build for isolated testing. It has not been deployed to glowingcoders.com, submitted to WordPress.org or published as a stable customer release. All implemented features are free.
+This remains a development build. Version 0.1.1 was installed on glowingcoders.com for controlled, owner-authorized live testing on 2026-11-03. It has not been submitted to WordPress.org or published as a stable customer release. All implemented features are free.
 
 ## Available in 0.1.1
 
@@ -38,7 +38,9 @@ The list paginates 25 rows. HTML/text appear at their shortcode position; priori
 4. Open **Snippet Studio → Add New**, choose type/location/priority and save inactive.
 5. Review the source, then activate from All Snippets. For HTML/text, place the displayed shortcode in your content.
 
-The latest read-only check of glowingcoders.com on **2026-11-03** confirmed **production, WordPress 7.1.4 / PHP 8.1.34**. It is below this build's PHP requirement. A PHP 8.2+ staging copy and verified backup/recovery are needed before site-specific installation testing. The plugin was not installed or activated on production.
+The live check of glowingcoders.com on **2026-11-03** confirmed **WordPress 7.1.4 / PHP 8.3.36 / LiteSpeed**, with Hello Elementor, Elementor 4.2.2 and Elementor Pro 4.1.3. Installation, all five types, PHP scopes, priority, shortcodes, Safe Mode, manual replay protection and deactivation/reactivation checks passed. All eight QA snippets were left inactive, the unpublished preview page was moved to recoverable Trash, and Safe Mode was restored to off. The plugin remains active at 0.1.1.
+
+The owner requested this production test without a backup. No backup/restore or hosting/file recovery was verified. Destructive fixtures and deliberate fatal-error tests were not run on the live site. This bounded check does not establish every Elementor feature, integration or caching scenario. See the [live validation record](docs/validation.md#011--controlled-live-smoke-test-2026-11-03).
 
 ## Execution and content rules
 
@@ -88,7 +90,7 @@ The [development guide](docs/development.md) explains how to reproduce checks. T
 
 | Section | Focus | Status / scope |
 | --- | --- | --- |
-| 1. Core Snippets | First development build | Core types, metadata, scopes, priority, activation, compact dashboard and recovery implemented in 0.1.1; staging/public-release review pending |
+| 1. Core Snippets | First development build | Core types, metadata, scopes, priority, activation, compact dashboard and recovery implemented in 0.1.1; controlled live checks passed; public-release review pending |
 | 2. Snippet Management | Organization | Search, tags, duplicate, bulk actions, import/export deferred |
 | 3. Placement Controls | Content placement | Header/footer fields, page-level and before/after-content placement deferred |
 | 4. Conditions & Integrations | Targeting | Device/user/page conditions, WooCommerce, Elementor and Gutenberg integrations deferred |
@@ -116,8 +118,8 @@ The [WordPress.org Plugin Developer FAQ](https://developer.wordpress.org/plugins
 | 0.1.1 core code and compact dashboard | Implemented |
 | Database, access controls and recovery | Implemented; checks documented |
 | Build, checks and documentation | Included; results in validation log |
-| glowingcoders.com deployment | Pending compatible staging and verified recovery |
-| Stable 1.0.0 release | Pending staging review and distribution decision |
+| glowingcoders.com deployment | 0.1.1 installed; controlled live checks passed on 2026-11-03; QA snippets inactive |
+| Stable 1.0.0 release | Pending final release review and distribution decision |
 | WordPress.org listing / customer updater | Not configured |
 
 See [CHANGELOG.md](CHANGELOG.md) for version changes.
