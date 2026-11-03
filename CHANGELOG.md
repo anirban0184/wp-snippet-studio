@@ -6,6 +6,8 @@
 - Add regression coverage for index.php requests and editing/reactivating active JavaScript snippets.
 - Extend acceptance checks for Unicode/source round trips, all-type edits, manual source changes, unsigned activation, pagination and pending schema migrations.
 - Add a real two-process manual-run race check with independent database connections.
+- Keep absolutely positioned accessibility labels inside the table scroller, fixing mobile document overflow under WordPress 6.4 styles.
+- Preserve the original fatal-error snapshot before WordPress error rendering can replace it with secondary notices, keeping output suppression and Safe Mode recovery effective on WordPress 6.4.
 
 ## 0.1.0 — development build
 

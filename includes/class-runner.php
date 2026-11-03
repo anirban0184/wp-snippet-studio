@@ -20,6 +20,7 @@ final class Runner {
 		add_action( 'plugins_loaded', array( $this, 'automatic_php' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'assets' ) );
 		add_shortcode( 'wpsstudio', array( $this, 'shortcode' ) );
+		add_filter( 'wp_php_error_message', array( $this, 'remember_fatal' ), 10, 2 );
 		register_shutdown_function( array( $this, 'shutdown' ) );
 	}
 
@@ -115,7 +116,7 @@ final class Runner {
 		// flush time, before its normal shutdown hook can expose partial PHP output.
 		ob_start(
 			function ( string $output ): string {
-				$error = error_get_last();
+				$error = $this->fatal_error ?? error_get_last();
 				if ( $this->executing && $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
 						$this->fatal_error = $error;
 						return '';
@@ -149,6 +150,15 @@ final class Runner {
 			$this->executing = null;
 			return false;
 		}
+	}
+
+	/** Core error rendering can raise notices that replace error_get_last(). */
+	public function remember_fatal( string $message, array $error ): string {
+		$file = (string) ( $error['file'] ?? '' );
+		if ( $this->executing || ( str_contains( $file, __FILE__ ) && str_contains( $file, "eval()'d code" ) ) ) {
+			$this->fatal_error = $error;
+		}
+		return $message;
 	}
 
 	public function shutdown(): void {

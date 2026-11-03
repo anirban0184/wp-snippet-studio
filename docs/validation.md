@@ -6,6 +6,10 @@ The acceptance pass reproduced two problems in the original frontend request det
 
 Regression checks now cover plain, pretty and index.php permalinks; their REST endpoints; saving/reactivating an active JavaScript snippet; pagination through 61 persisted records; Unicode and quoted source across all five types; manual receipts after metadata/source edits; unsigned activation; and pending schema migration behavior. A real two-process test uses independent database connections and an atomic counter to verify that simultaneous manual attempts produce one accepted execution and one blocked attempt.
 
+The first expanded WordPress 6.4 browser run also detected a mobile overflow regression. Absolutely positioned accessibility labels escaped the table's scroll clipping because it did not establish their containing block. Setting the scroller to position:relative confines them to the table. The strict whole-document width assertion is retained; this is a layout fix, not a relaxed test.
+
+The baseline fatal-error test then exposed secondary notices from WordPress 6.4's error rendering replacing error_get_last(). The runner now snapshots the original snippet fatal through wp_php_error_message before rendering. Both the output filter and shutdown recovery use that snapshot; the HTTP 500/private-output and Safe Mode assertions remain strict.
+
 Final packaged-build results and CI links are recorded after the test run. This section is not a claim that uncompleted CI jobs have passed. Production/staging integration and independent auditing remain outstanding.
 
 ## 0.1.0 — initial development validation
