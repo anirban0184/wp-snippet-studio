@@ -8,6 +8,7 @@
 - Add a real two-process manual-run race check with independent database connections.
 - Keep absolutely positioned accessibility labels inside the table scroller, fixing mobile document overflow under WordPress 6.4 styles.
 - Preserve the original fatal-error snapshot before WordPress error rendering can replace it with secondary notices, keeping output suppression and Safe Mode recovery effective on WordPress 6.4.
+- Record controlled live checks on glowingcoders.com after its PHP 8.3.36 upgrade, including all snippet types/scopes, priority, Safe Mode, manual replay protection and reactivation retention. QA snippets were left inactive; no runtime changes were needed for this pass.
 
 ## 0.1.0 — development build
 
@@ -21,4 +22,4 @@
 - Preserve data on deactivation, upgrade and ordinary uninstall; require an explicit configuration constant for deletion during uninstall.
 - Add functional/security integration checks, browser checks, code standards checks and an installation ZIP builder.
 
-This build has not been deployed to glowingcoders.com, submitted to WordPress.org or published as a stable customer release. There is no automatic updater yet.
+Version 0.1.1 is installed on glowingcoders.com for owner-authorized testing. This development build has not been submitted to WordPress.org or published as a stable customer release. There is no automatic updater yet.

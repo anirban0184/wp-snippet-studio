@@ -1,5 +1,29 @@
 # Validation log
 
+## 0.1.1 — controlled live smoke test, 2026-11-03
+
+Installed and activated the verified 0.1.1 package on **glowingcoders.com** at the owner's explicit request, after WordPress Site Health confirmed the upgrade to **PHP 8.3.36**. The site uses single-site **WordPress 7.1.4**, **LiteSpeed**, **Hello Elementor**, **Elementor 4.2.2** and **Elementor Pro 4.1.3**. The owner requested proceeding without a backup; no backup/restore or hosting/file recovery was verified.
+
+Package provenance: runtime source at commit `97ef58d89fae02798b06e4a687a87d2a5a8da566`; uploaded `wp-snippet-studio-0.1.1.zip` SHA-256 **`97688354c02ec7bc5d98e1597ab651e2f1a765dc090be81b3f85490b7a1e4364`**. This documentation update does not change runtime source or plugin version. Later documentation-only rebuilds may produce a different archive checksum.
+
+| Live check | Observed result |
+| --- | --- |
+| ZIP installation and activation | WordPress reported successful installation and activation; plugin list and dashboard showed 0.1.1. |
+| Metadata and inactive saves | Saved PHP, CSS, JavaScript, HTML and text with titles/descriptions. New records were inactive. Editing the active CSS description deactivated it and removed its frontend output. |
+| Individual controls and type tabs | Separate activation/deactivation worked. All/PHP/CSS/JS/HTML/Text showed the expected 8/4/1/1/1/1 records. Type, run location, priority, status and actions stayed in one desktop table row. |
+| PHP run locations | Frontend-only metadata appeared on the Elementor home page and stayed off the admin dashboard. Admin-only metadata appeared on the admin dashboard and stayed off the frontend. Everywhere metadata appeared on both. The plugin management route contained none of these automatic PHP markers. |
+| Priority | With both hook priorities fixed at 10, changing the everywhere snippet priority from 20 to 5 reversed its frontend metadata order relative to the priority-10 snippet. Its active status was preserved; priority was then restored to 20. |
+| CSS and JavaScript | A harmless CSS custom property was present in computed frontend styles and a head style element. A footer script set the expected DOM attribute. Both were absent on the admin dashboard. |
+| HTML and text shortcodes | An unpublished draft preview rendered the HTML strong element after stripping a harmless event-handler attribute. Text escaped literal HTML and preserved a line break and nested shortcode text. Direct PHP and missing-ID shortcodes produced no body output. |
+| Safe Mode | Paused PHP metadata, CSS, JavaScript and both content shortcodes while preserving all seven automatic active flags. The manual button was disabled. Turning Safe Mode off restored normal output and the manual control. |
+| Run once | A side-effect-free arithmetic check completed while remaining inactive. A second attempt was rejected with the expected already-attempted message. |
+| Plugin reactivation | Deactivation/reactivation succeeded. All eight records, types/scopes, priorities and inactive states remained available. |
+| Cleanup and final site check | Seven automatic snippets were disabled; the manual record remained inactive. Draft page 633 was never published and was moved to recoverable Trash. The visual editor was restored. Safe Mode was off, 0.1.1 remained active, and the site root, Elementor home and admin dashboard loaded with no QA metadata/CSS/JavaScript markers. |
+
+The retained records are named **Live QA — PHP Frontend / PHP Everywhere / PHP Admin / PHP Run Once / CSS / JavaScript / HTML / Text** (IDs 1–8). They remain available for review; no individual snippet was permanently deleted. The manual run only checked arithmetic and did not write site content or options.
+
+These were controlled browser checks through the normal administrator UI and an authenticated unpublished preview. The destructive test suite, intentional fatal errors, table-loss simulation, role changes, concurrent workers and uninstall experiments were not run on production. The earlier isolated suites remain the evidence for those cases. This is not an independent security audit, a mobile-device check on this host, a full Elementor integration certification, a backup/restore verification or a public release. No new runtime defect was reproduced during this live pass.
+
 ## 0.1.1 — acceptance test pass, 2026-11-03
 
 The acceptance pass reproduced two problems in the original frontend request detector: ordinary home/index.php paths could be mistaken for REST paths, and pretty permalinks could cause rest_url() to access WordPress's rewrite object before core initialized it. The fix checks query-based REST explicitly and matches core's pretty REST prefixes without that late-initialized object.
@@ -22,9 +46,9 @@ The [corrected-source CI run](https://github.com/anirban0184/wp-snippet-studio/a
 | Request-scope routes | 28 plain, 40 pretty and 40 index-permalink checks passed on both WordPress versions; REST returns JSON and excludes frontend-only PHP |
 | ZIP/upgrade verification | Independently installed 0.1.1 tested on both local WordPress versions; verified 0.1.0-to-0.1.1 replacement and reactivation preserve the exact signed active record |
 | Quality gates | PHP syntax, WordPress standards/security/compatibility, JavaScript syntax, Composer validation and Composer/npm advisory checks passed |
-| Production check | Read-only Site Health inspection on 2026-11-03 confirmed glowingcoders.com is production / WordPress 7.1.4 / PHP 8.1.34. No plugin installation or activation was performed there. |
+| Initial production check | Earlier read-only Site Health inspection on 2026-11-03 found production / WordPress 7.1.4 / PHP 8.1.34 and did not install the plugin. The subsequent PHP upgrade and controlled live pass are recorded above. |
 
-The local packaged tests used PHP 8.3.6/MariaDB 10.11.14; CI supplies the PHP 8.2/8.3/8.4 matrix. The report/checks do not establish compatibility with the site's specific Elementor/theme/cache stack. A PHP 8.2+ staging copy with verified backup/recovery is still needed before that site-specific test. No independent audit, stable release, directory submission or customer updater is claimed.
+The local packaged tests used PHP 8.3.6/MariaDB 10.11.14; CI supplies the PHP 8.2/8.3/8.4 matrix. The generic suites alone do not establish compatibility with a specific Elementor/theme/cache stack. The controlled site-specific pass above adds bounded evidence for the observed stack, with broader integration/caching checks and backup/recovery still unverified. No independent audit, stable release, directory submission or customer updater is claimed.
 
 ## 0.1.0 — initial development validation
 
@@ -56,6 +80,6 @@ Manual source review covered capability/nonces on every management path, source 
 
 - Keep the GitHub CI matrix passing for future source changes and inspect actual results.
 - Test on a compatible staging copy with the intended theme, Elementor/WooCommerce stack, cache, security and hosting configuration. Generic WordPress tests do not establish compatibility with every plugin or persistent cache.
-- Verify a real backup/restore and hosting/file recovery route before any production installation.
+- Verify a real backup/restore and hosting/file recovery route for future production work; the owner-authorized live pass above did not verify these.
 - Decide the distribution channel and implement/test customer update delivery separately. There is no updater, stable release, WordPress.org submission or approval in this build.
 - Recheck source, dependencies and security findings before a stable release. PHP remains privileged, fatal recovery remains best effort and manual execution has no rollback guarantee.

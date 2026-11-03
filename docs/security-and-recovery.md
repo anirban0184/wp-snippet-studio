@@ -2,7 +2,7 @@
 
 ## Before installation
 
-Use a single-site **staging** installation, a verified database/file backup and a working hosting/file-access recovery route. WordPress 6.4+ and PHP 8.2+ are the compatibility floors; use actively maintained, patched WordPress and PHP versions in production. The previously inspected glowingcoders.com production host used PHP 8.1, so that environment needs an appropriate supported PHP upgrade and staging verification before installing this build. No live-site changes were made during development.
+Use a single-site **staging** installation, a verified database/file backup and a working hosting/file-access recovery route. WordPress 6.4+ and PHP 8.2+ are the compatibility floors; use actively maintained, patched WordPress and PHP versions in production. After glowingcoders.com was upgraded to PHP 8.3.36, the owner explicitly authorized a controlled live test without a backup on 2026-11-03. That pass is documented in [validation](validation.md); it did not verify backup/restore or hosting/file recovery and did not run the destructive test suite on production.
 
 PHP and JavaScript authors must be trusted like plugin developers. PHP executes with the site's PHP permissions, including database and filesystem access. JavaScript executes in visitors' browsers. Syntax validation, signatures and recovery **do not sandbox code** or make malicious code safe.
 
