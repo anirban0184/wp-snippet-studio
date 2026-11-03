@@ -52,6 +52,6 @@ The private fixture file contains randomly generated test credentials and is exc
 
 For package upgrade checks: install the archived 0.1.1 ZIP, deactivate it without loading it, run `tests/upgrade-fixture.php` with that plugin skipped, then replace it with the 1.0.0 ZIP and activate. Run `tests/upgrade-assert.php` to check preservation and inactive approvals. For replacement/deactivation/ordinary-uninstall checks, use the seed/check/remove actions in `tests/retention.php`. The CI workflow records the exact commands.
 
-Run the official WordPress Plugin Check against the installed minimal ZIP with all default checks and no suppressed findings. A successful scan does not guarantee directory acceptance. Keep actual results in [validation](validation.md).
+Run the official WordPress Plugin Check against the installed minimal ZIP with all default checks and no excluded checks or ignored-warning flags. Preserve its raw output, then run `php tests/plugin-check-report.php` to retain every finding in a structured report and reject unreviewed findings. The retained WP-prefix naming warnings require directory review; a successful CI job is not a clean naming scan or directory approval. Source annotations name and explain the necessary custom-table operations. Keep actual results in [validation](validation.md).
 
 Development uses a feature branch, reviewed diff, checks and a pull request. GitHub does not deploy to production or deliver WordPress customer updates. Directory submission, review, SVN publication and update delivery are separate steps.

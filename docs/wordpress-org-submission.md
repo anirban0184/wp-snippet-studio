@@ -16,7 +16,7 @@ The earlier full execution build remains archived. The content edition is the co
 
 Use **wp-snippet-studio-1.0.0.zip**, produced by the content-edition workflow. The artifact named **wp-snippet-studio-submission-candidate** contains the installation ZIP, its checksum and the complete Plugin Check report.
 
-Download the artifact from the latest successful matching-commit run. Extract the outer GitHub artifact archive once, then select the inner plugin ZIP for submission. Do not upload the outer report bundle or GitHub's source-code archive.
+[Download the verified candidate bundle](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002/artifacts/13220250275) from the all-passing validation run. Extract the outer GitHub artifact archive once, then select the inner plugin ZIP for submission. Do not upload the outer report bundle or GitHub's source-code archive.
 
 Expected plugin ZIP SHA-256:
 

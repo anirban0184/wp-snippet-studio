@@ -38,7 +38,9 @@ Direct custom-table reads and writes use prepared identifiers/values or WordPres
 - [Initial run 41609726193](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41609726193) exposed the uninstall lint warning, WordPress 6.4 header overflow and official scan warnings.
 - [Run 41611316863](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41611316863) exposed the remaining narrow heading and pagination test synchronization issues.
 - [Run 41611683498](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41611683498) contains the passing steps and exact digest above. The overall run was cancelled while an older commit was being rerun in the same concurrency group; it is not represented as a green overall CI run.
-- A workflow follow-up isolates concurrency by commit. Final overall CI status must be checked on the current pull-request head before merge.
+- [Final validation run 41612260002](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002), commit `c48c71291fc768b76aa645e7f5e114e4f71250f9`: **all four jobs passed**, including the unfiltered official scan plus explicit review of its three naming warnings. Concurrency is isolated by commit. Tested latest WordPress was **7.1.4**.
+- [Verified candidate artifact](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002/artifacts/13220250275) contains the exact installation ZIP, checksum and complete report. Extract this report bundle once before uploading the inner plugin ZIP.
+- Final tracking/documentation-only changes do not alter the tested runtime or package digest. Current-head checks are also required before merge.
 
 The production site remains on 0.1.1. No new-edition installation or production test was performed in this follow-up. The original full development build remains archived on `legacy/full-snippets-0.1.1`.
 

@@ -38,6 +38,8 @@ Only administrators with `manage_options` can manage content. HTML/text editing 
 
 Run `php scripts/build.php` to produce `build/wp-snippet-studio-1.0.0.zip` and its SHA-256 checksum. The allow-list includes runtime files, `readme.txt` and the license only; development tests, tools, logs, screenshots and credentials are excluded.
 
+All four jobs passed in [validation run 41612260002](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002): quality, PHP 8.2 / WordPress 6.4, PHP 8.3 / WordPress 7.1.4 and PHP 8.4 / WordPress 7.1.4. The suites include 68 integration checks per combination, 46 browser/HTTP/responsive checks on each browser-tested combination, and package upgrade/retention checks.
+
 The [submission guide](docs/wordpress-org-submission.md) identifies the exact ZIP, checksum and remaining upload step. The official scan currently reports three naming warnings for the retained `WP` prefix, with no errors; these require reviewer resolution and are not represented as a clean scan.
 
 The [development guide](docs/development.md) describes isolated test commands and actual package upgrade/uninstall checks. Never run the destructive fixtures on production. The [validation log](docs/validation.md) records actual results; checks being configured is not evidence that they passed.
@@ -52,7 +54,7 @@ The [WordPress.org FAQ](https://developer.wordpress.org/plugins/wordpress-org/pl
 | Earlier full build | Archived on the legacy branch |
 | HTML/text edition | Implemented; content/security and responsive suites verified |
 | Production installation | Earlier 0.1.1 build; new edition not installed |
-| Submission package | 1.0.0 candidate built; final CI status tracked in validation log |
+| Submission package | 15-file 1.0.0 candidate built and verified; [download bundle](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41612260002/artifacts/13220250275) |
 | WordPress.org submission / approval | Pending |
 
 All included features are free. Future development must stay within the directory's rules. See [CHANGELOG.md](CHANGELOG.md) and [SECURITY.md](SECURITY.md).
