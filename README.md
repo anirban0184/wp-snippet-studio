@@ -38,7 +38,7 @@ The list paginates 25 rows. HTML/text appear at their shortcode position; priori
 4. Open **Snippet Studio → Add New**, choose type/location/priority and save inactive.
 5. Review the source, then activate from All Snippets. For HTML/text, place the displayed shortcode in your content.
 
-The previously inspected glowingcoders.com host was **production, WordPress 7.1.4 / PHP 8.1**. It is below this build's PHP requirement. A supported PHP upgrade and staging verification are needed before installation there. Development did not change that production site.
+The latest read-only check of glowingcoders.com on **2026-11-03** confirmed **production, WordPress 7.1.4 / PHP 8.1.34**. It is below this build's PHP requirement. A PHP 8.2+ staging copy and verified backup/recovery are needed before site-specific installation testing. The plugin was not installed or activated on production.
 
 ## Execution and content rules
 
@@ -77,6 +77,8 @@ Safe Mode pauses PHP, CSS/JS, shortcodes and manual execution on new requests. K
 Read [Security and recovery](docs/security-and-recovery.md) before using executable snippets. It covers exact scope rules, limitations, backups, cache behavior, file/CLI recovery and the explicit `WPSSTUDIO_DELETE_DATA` uninstall option. Ordinary uninstall preserves data. [SECURITY.md](SECURITY.md) explains private reporting.
 
 ## Validation
+
+The 0.1.1 acceptance pass fixed frontend/REST request detection, mobile overflow under WordPress 6.4 styles and fatal-error snapshot loss during older core error rendering. The corrected source passes all GitHub CI jobs across PHP 8.2–8.4, including browser/recovery tests on WordPress 6.4 and 7.1.4. Versioned ZIP replacement preserves signed snippet records.
 
 Real-WordPress integration, browser, policy, syntax, WordPress coding/security standards, compatibility and dependency checks are included. [Validation results](docs/validation.md) record the environments actually tested and remaining limits. A configured CI matrix is not a claim that every job has passed.
 

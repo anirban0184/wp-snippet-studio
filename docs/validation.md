@@ -10,7 +10,21 @@ The first expanded WordPress 6.4 browser run also detected a mobile overflow reg
 
 The baseline fatal-error test then exposed secondary notices from WordPress 6.4's error rendering replacing error_get_last(). The runner now snapshots the original snippet fatal through wp_php_error_message before rendering. Both the output filter and shutdown recovery use that snapshot; the HTTP 500/private-output and Safe Mode assertions remain strict.
 
-Final packaged-build results and CI links are recorded after the test run. This section is not a claim that uncompleted CI jobs have passed. Production/staging integration and independent auditing remain outstanding.
+The [corrected-source CI run](https://github.com/anirban0184/wp-snippet-studio/actions/runs/41590320154) passed all four jobs. Integration, acceptance, concurrency and policy checks passed on PHP 8.2/WordPress 6.4, PHP 8.3/WordPress 7.1.4 and PHP 8.4/WordPress 7.1.4. Both browser combinations (8.2/6.4 and 8.3/7.1.4) also passed.
+
+| Test group | Result |
+| --- | --- |
+| Existing integration suite | 96 checks passed per tested environment |
+| Additional acceptance suite | 30 checks passed: all-type edits, Unicode/source preservation, manual receipts, unsigned activation, pagination and schema pause |
+| Real concurrent execution | Two workers with separate DB connections: one accepted execution, one blocked attempt, one stored effect; passed locally and in all three CI combinations |
+| Full browser suite | 56 checks passed on WordPress 6.4 and 7.1.4, including strict document-overflow assertions down to 320px and private-output/Safe Mode checks after immediate and deferred fatal errors |
+| Pagination browser suite | 23 checks passed across 61 records, including all/text filters, page boundaries, stable IDs and malformed read-only parameters |
+| Request-scope routes | 28 plain, 40 pretty and 40 index-permalink checks passed on both WordPress versions; REST returns JSON and excludes frontend-only PHP |
+| ZIP/upgrade verification | Independently installed 0.1.1 tested on both local WordPress versions; verified 0.1.0-to-0.1.1 replacement and reactivation preserve the exact signed active record |
+| Quality gates | PHP syntax, WordPress standards/security/compatibility, JavaScript syntax, Composer validation and Composer/npm advisory checks passed |
+| Production check | Read-only Site Health inspection on 2026-11-03 confirmed glowingcoders.com is production / WordPress 7.1.4 / PHP 8.1.34. No plugin installation or activation was performed there. |
+
+The local packaged tests used PHP 8.3.6/MariaDB 10.11.14; CI supplies the PHP 8.2/8.3/8.4 matrix. The report/checks do not establish compatibility with the site's specific Elementor/theme/cache stack. A PHP 8.2+ staging copy with verified backup/recovery is still needed before that site-specific test. No independent audit, stable release, directory submission or customer updater is claimed.
 
 ## 0.1.0 — initial development validation
 
