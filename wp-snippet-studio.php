@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Snippet Studio
  * Description: Manage trusted PHP, CSS, JavaScript, HTML and reusable text snippets independently of your theme.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.4
  * Requires PHP: 8.2
  * Author: Glowing Coders
@@ -19,7 +19,7 @@ namespace GlowingCoders\WPSnippetStudio;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPSSTUDIO_VERSION', '0.1.0' );
+define( 'WPSSTUDIO_VERSION', '0.1.1' );
 define( 'WPSSTUDIO_FILE', __FILE__ );
 define( 'WPSSTUDIO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPSSTUDIO_URL', plugin_dir_url( __FILE__ ) );
@@ -38,7 +38,7 @@ if ( is_multisite() ) {
 	add_action(
 		'admin_notices',
 		static function () {
-			echo '<div class="notice notice-error"><p>' . esc_html__( 'WP Snippet Studio 0.1.0 supports single-site WordPress only. Snippet execution is disabled on multisite.', 'wp-snippet-studio' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'WP Snippet Studio currently supports single-site WordPress only. Snippet execution is disabled on multisite.', 'wp-snippet-studio' ) . '</p></div>';
 		}
 	);
 	return;

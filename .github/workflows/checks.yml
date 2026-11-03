@@ -36,7 +36,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm audit --audit-level=moderate
       - run: git ls-files '*.php' | xargs -n 1 php -l
-      - run: node --check assets/admin.js && node --check tests/browser.mjs
+      - run: node --check assets/admin.js && node --check tests/browser.mjs && node --check tests/pagination-browser.mjs && node --check tests/routes.mjs
       - run: php scripts/build.php
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -80,7 +80,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mysqli, mbstring, xml, zip
+          extensions: mysqli, mbstring, xml, zip, pcntl
           tools: wp-cli:2.12.0
           coverage: none
       - name: Install a disposable WordPress site
@@ -101,16 +101,18 @@ jobs:
       - name: Integration and fail-closed policies
         run: |
           wp eval-file tests/integration.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp eval-file tests/acceptance.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp eval-file tests/concurrency.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
           for policy in file_edit file_mods; do
             WPSSTUDIO_TEST_POLICY="$policy" wp --require="$GITHUB_WORKSPACE/tests/policy-bootstrap.php" eval-file tests/policy.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
           done
           WPSSTUDIO_TEST_POLICY=tokenizer php -d disable_functions=token_get_all "$(which wp)" --require="$GITHUB_WORKSPACE/tests/policy-bootstrap.php" eval-file tests/policy.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        if: matrix.php == '8.3'
+        if: matrix.php != '8.4'
         with:
           node-version: '22'
       - name: Browser and fatal recovery checks
-        if: matrix.php == '8.3'
+        if: matrix.php != '8.4'
         run: |
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
@@ -121,6 +123,14 @@ jobs:
             sleep 1
           done
           npm run test:browser
+          wp eval-file tests/browser-cleanup.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          WPSSTUDIO_QA_PAGINATION=1 wp eval-file tests/browser-fixtures.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          npm run test:pagination
+          WPSSTUDIO_ROUTE_MODE=plain node tests/routes.mjs
+          wp rewrite structure '/%postname%/' --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          WPSSTUDIO_ROUTE_MODE=pretty node tests/routes.mjs
+          wp rewrite structure '/index.php/%postname%/' --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          WPSSTUDIO_ROUTE_MODE=index node tests/routes.mjs
       - name: Remove browser fixtures
-        if: always() && matrix.php == '8.3'
+        if: always() && matrix.php != '8.4'
         run: wp eval-file tests/browser-cleanup.php --path="$RUNNER_TEMP/wordpress" --user=studioqa

@@ -23,7 +23,7 @@ The table is `{prefix}wpsstudio_snippets`, inside the existing WordPress databas
 
 ## Tools
 
-PHP 8.2+, Composer 2, Node 22+, MySQL/MariaDB, WP-CLI and a disposable **single-site** WordPress installation are needed for development checks. Production code has no Composer/npm dependencies and no build step at runtime.
+PHP 8.2+, Composer 2, Node 22+, MySQL/MariaDB, WP-CLI and a disposable **single-site** WordPress installation are needed for development checks. The CLI concurrency check additionally needs `pcntl`, available on the Linux CI runners. Production code does not require pcntl, has no Composer/npm dependencies and has no build step at runtime.
 
 ```sh
 composer install
@@ -45,6 +45,8 @@ Install/link the repository as `wp-content/plugins/wp-snippet-studio`, then:
 ```sh
 wp plugin activate wp-snippet-studio --user=YOUR_TEST_ADMIN
 WPSSTUDIO_TESTS=1 wp eval-file tests/integration.php --user=YOUR_TEST_ADMIN
+WPSSTUDIO_TESTS=1 wp eval-file tests/acceptance.php --user=YOUR_TEST_ADMIN
+WPSSTUDIO_TESTS=1 wp eval-file tests/concurrency.php --user=YOUR_TEST_ADMIN
 
 for policy in file_edit file_mods; do
   WPSSTUDIO_TESTS=1 WPSSTUDIO_TEST_POLICY="$policy" wp --require=tests/policy-bootstrap.php eval-file tests/policy.php --user=YOUR_TEST_ADMIN
@@ -66,11 +68,19 @@ php -S 127.0.0.1:8090 -t /path/to/disposable-wordpress
 # In another terminal, export the same fixture variable and run:
 npm run test:browser
 wp eval-file tests/browser-cleanup.php --user=YOUR_TEST_ADMIN
+WPSSTUDIO_QA_PAGINATION=1 wp eval-file tests/browser-fixtures.php --user=YOUR_TEST_ADMIN
+npm run test:pagination
+WPSSTUDIO_ROUTE_MODE=plain node tests/routes.mjs
+wp rewrite structure '/%postname%/' --user=YOUR_TEST_ADMIN
+WPSSTUDIO_ROUTE_MODE=pretty node tests/routes.mjs
+wp rewrite structure '/index.php/%postname%/' --user=YOUR_TEST_ADMIN
+WPSSTUDIO_ROUTE_MODE=index node tests/routes.mjs
+wp eval-file tests/browser-cleanup.php --user=YOUR_TEST_ADMIN
 ```
 
 Fixtures write randomly generated test credentials to a private ignored JSON file. Never commit or upload it. Cleanup removes tracked fixture data. On an interrupted test, enable file-based Safe Mode before cleanup if necessary. Screenshots go to ignored `build/qa/`. Browser cases verify real HTTP permissions/CSRF, responsive geometry, CRUD/toggles/priority, execution scopes, assets/content and immediate/deferred fatal recovery. The suite intentionally allows native confirmation dialogs and accepts them.
 
-The GitHub workflow uses read-only repository permissions, locked development dependencies, pinned action commits and disposable databases. It never deploys, creates a release or handles production credentials. It checks PHP 8.2/WordPress 6.4, PHP 8.3/latest WordPress and PHP 8.4/latest WordPress. A configured job is not evidence of a successful run; see actual results in Actions and [validation](validation.md).
+The GitHub workflow uses read-only repository permissions, locked development dependencies, pinned action commits and disposable databases. It never deploys, creates a release or handles production credentials. It checks PHP 8.2/WordPress 6.4, PHP 8.3/latest WordPress and PHP 8.4/latest WordPress, with browser suites on the first two combinations. A configured job is not evidence of a successful run; see actual results in Actions and [validation](validation.md).
 
 ## Package and version control
 
@@ -78,8 +88,8 @@ The GitHub workflow uses read-only repository permissions, locked development de
 php scripts/build.php
 ```
 
-Requires the PHP zip extension for development only. It writes `build/wp-snippet-studio-0.1.0.zip` and its checksum with a single `wp-snippet-studio/` install directory. The allow-list excludes tests, credentials, dependencies, CI and development config. Repeated builds with the same source/toolchain produce the same archive.
+Requires the PHP zip extension for development only. It writes `build/wp-snippet-studio-0.1.1.zip` and its checksum with a single `wp-snippet-studio/` install directory. The allow-list excludes tests, credentials, dependencies, CI and development config. Repeated builds with the same source/toolchain produce the same archive.
 
 For a version change, update the plugin header, `WPSSTUDIO_VERSION`, npm manifest/lock, changelog, readme and build documentation together. Validate installation of the built ZIP on an isolated site as well as the source checkout. Preserve data across replacement/deactivation/reactivation. Do not deploy to production or tag a stable customer release on the strength of lint alone.
 
-Development uses a feature branch, a reviewed diff, automated checks and a pull request. GitHub is source control; no automatic customer updater exists in 0.1.0. Distribution and update signing/transport/version policy require a separate product decision.
+Development uses a feature branch, a reviewed diff, automated checks and a pull request. GitHub is source control; no automatic customer updater exists in 0.1.1. Distribution and update signing/transport/version policy require a separate product decision.
