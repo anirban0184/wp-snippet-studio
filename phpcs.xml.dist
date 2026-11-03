@@ -11,8 +11,6 @@
   <rule ref="WordPress-Extra"/>
   <rule ref="WordPress.WP.I18n"><properties><property name="text_domain" type="array"><element value="wp-snippet-studio"/></property></properties></rule>
   <rule ref="PHPCompatibilityWP"/>
-  <!-- This plugin's sole storage is a custom table; reads must remain fresh for recovery and revocation. -->
-  <rule ref="WordPress.DB.DirectDatabaseQuery"><exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/><exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/></rule>
   <!-- Class files are explicitly required; namespacing keeps their public names unique. -->
   <rule ref="WordPress.Files.FileName"><exclude name="WordPress.Files.FileName.InvalidClassFileName"/></rule>
 </ruleset>

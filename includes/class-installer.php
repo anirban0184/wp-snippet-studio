@@ -5,6 +5,8 @@ namespace GlowingCoders\WPSnippetStudio;
 
 defined( 'ABSPATH' ) || exit;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Schema verification and one-time migration target this plugin's custom table directly and must inspect current database state.
+
 final class Installer {
 	public const SCHEMA_VERSION = '2';
 

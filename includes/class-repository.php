@@ -5,6 +5,8 @@ namespace GlowingCoders\WPSnippetStudio;
 
 defined( 'ABSPATH' ) || exit;
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- The custom table has no core storage API; uncached reads and conditional writes keep revocation, approval signatures and revision conflicts current across requests.
+
 final class Repository {
 	private string $table;
 

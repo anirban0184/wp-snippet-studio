@@ -55,6 +55,9 @@ try {
 		await page.setViewportSize( { width, height: 1000 } );
 		const geometry = await page.evaluate( () => { const cells = Array.from( document.querySelector( '.wpsstudio-table tbody tr' ).cells ).map( e => e.getBoundingClientRect() ); return { y: cells.map( e => e.y ), document: document.documentElement.scrollWidth, viewport: innerWidth }; } );
 		check( geometry.y.length === 5 && Math.max( ...geometry.y ) - Math.min( ...geometry.y ) < 1, 'Five columns on one row: ' + width );
+		if ( geometry.document > geometry.viewport ) {
+			console.log( 'Responsive overflow diagnostics', await page.evaluate( () => Array.from( document.querySelectorAll( 'body *' ) ).filter( el => ! el.closest( '.wpsstudio-table-scroll' ) && el.getBoundingClientRect().right > innerWidth ).map( el => ( { tag: el.tagName, id: el.id, className: el.className, right: el.getBoundingClientRect().right } ) ).slice( 0, 20 ) ) );
+		}
 		check( geometry.document <= geometry.viewport, 'Table-only horizontal scrolling: ' + width );
 		if ( width === 1440 || width === 360 ) { await page.screenshot( { path: path.join( artifacts, 'content-' + width + '.png' ), fullPage: true } ); }
 	}

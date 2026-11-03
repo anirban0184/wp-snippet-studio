@@ -20,7 +20,8 @@ final class Admin {
 
 	public static function management_request(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only route allow-list.
-		return is_admin() && isset( $_GET['page'] ) && is_string( $_GET['page'] ) && in_array( $_GET['page'], array( 'wpsstudio', 'wpsstudio-new' ), true );
+		$page = isset( $_GET['page'] ) && is_string( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		return is_admin() && in_array( $page, array( 'wpsstudio', 'wpsstudio-new' ), true );
 	}
 
 	public function menu(): void {
@@ -44,7 +45,8 @@ final class Admin {
 			$this->error = new \WP_Error( 'database', __( 'The snippet database is unavailable. Content output is paused.', 'wp-snippet-studio' ) );
 			return;
 		}
-		if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+		$method = isset( $_SERVER['REQUEST_METHOD'] ) && is_string( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+		if ( 'POST' !== $method ) {
 			return;
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Explicit action/record nonce verification below.
@@ -133,7 +135,9 @@ final class Admin {
 
 	private function editing(): bool {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view selection.
-		return null !== $this->draft || 'wpsstudio-new' === ( $_GET['page'] ?? '' ) || isset( $_GET['id'] );
+		$page = isset( $_GET['page'] ) && is_string( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Presence only selects a capability-gated read-only editor.
+		return null !== $this->draft || 'wpsstudio-new' === $page || isset( $_GET['id'] );
 	}
 
 	private function defaults(): array {
@@ -153,36 +157,37 @@ final class Admin {
 		if ( ! Permissions::can_manage() ) {
 			wp_die( esc_html__( 'You do not have permission to view snippet content.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
-		$editing = $this->editing();
-		$counts  = Installer::ready() ? $this->repository->counts() : array(
+		$wpsstudio_editing = $this->editing();
+		$wpsstudio_counts  = Installer::ready() ? $this->repository->counts() : array(
 			'html' => 0,
 			'text' => 0,
 			'all'  => 0,
 		);
-		$legacy  = Installer::ready() ? $this->repository->legacy_count() : 0;
-		if ( $editing ) {
+		$wpsstudio_legacy  = Installer::ready() ? $this->repository->legacy_count() : 0;
+		if ( $wpsstudio_editing ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Capability-gated read-only lookup.
-			$id = Validator::id( $_GET['id'] ?? '' );
+			$wpsstudio_id = isset( $_GET['id'] ) && is_string( $_GET['id'] ) ? Validator::id( sanitize_text_field( wp_unslash( $_GET['id'] ) ) ) : 0;
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Invalid read-only IDs must not become new records.
-			if ( isset( $_GET['id'] ) && ! $id ) {
+			if ( isset( $_GET['id'] ) && ! $wpsstudio_id ) {
 				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
 			}
-			$snippet = $this->draft ?? ( $id ? $this->repository->get( $id ) : $this->defaults() );
-			if ( ! $snippet ) {
+			$wpsstudio_snippet = $this->draft ?? ( $wpsstudio_id ? $this->repository->get( $wpsstudio_id ) : $this->defaults() );
+			if ( ! $wpsstudio_snippet ) {
 				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
 			}
 		} else {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Allow-listed read-only filtering.
-			$type = isset( $_GET['type'] ) && is_string( $_GET['type'] ) && in_array( $_GET['type'], Validator::TYPES, true ) ? $_GET['type'] : '';
+			$wpsstudio_type = isset( $_GET['type'] ) && is_string( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : '';
+			$wpsstudio_type = in_array( $wpsstudio_type, Validator::TYPES, true ) ? $wpsstudio_type : '';
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Strict read-only pagination.
-			$current_page = max( 1, Validator::id( $_GET['paged'] ?? '' ) );
-			$total        = $counts[ $type ? $type : 'all' ];
-			$pages        = max( 1, (int) ceil( $total / 25 ) );
-			$current_page = min( $current_page, $pages );
-			$snippets     = Installer::ready() ? $this->repository->page( $type, $current_page ) : array();
+			$wpsstudio_current_page = isset( $_GET['paged'] ) && is_string( $_GET['paged'] ) ? max( 1, Validator::id( sanitize_text_field( wp_unslash( $_GET['paged'] ) ) ) ) : 1;
+			$wpsstudio_total        = $wpsstudio_counts[ $wpsstudio_type ? $wpsstudio_type : 'all' ];
+			$wpsstudio_pages        = max( 1, (int) ceil( $wpsstudio_total / 25 ) );
+			$wpsstudio_current_page = min( $wpsstudio_current_page, $wpsstudio_pages );
+			$wpsstudio_snippets     = Installer::ready() ? $this->repository->page( $wpsstudio_type, $wpsstudio_current_page ) : array();
 		}
 		require WPSSTUDIO_PATH . 'admin/views/header.php';
-		require WPSSTUDIO_PATH . ( $editing ? 'admin/views/editor.php' : 'admin/views/list.php' );
+		require WPSSTUDIO_PATH . ( $wpsstudio_editing ? 'admin/views/editor.php' : 'admin/views/list.php' );
 		echo '</div>';
 	}
 

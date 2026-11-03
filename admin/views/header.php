@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 	<?php if ( Renderer::paused() ) : ?>
 		<div class="notice notice-warning inline"><p><?php esc_html_e( 'All snippet output is paused. Active settings are preserved and snippets remain editable.', 'wp-snippet-studio' ); ?></p></div>
 	<?php endif; ?>
-	<?php if ( $legacy ) : ?>
+	<?php if ( $wpsstudio_legacy ) : ?>
 		<div class="notice notice-info inline"><p><?php esc_html_e( 'Records from an earlier development build are preserved in the database. Unsupported types are unavailable in this content-only edition. Existing HTML/text content requires review before activation.', 'wp-snippet-studio' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( $this->error ) : ?>
@@ -29,8 +29,8 @@ defined( 'ABSPATH' ) || exit;
 	<?php endif; ?>
 	<?php
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Fixed read-only notice allow-list.
-	$notice   = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? $_GET['notice'] : '';
-	$messages = array(
+	$wpsstudio_notice   = isset( $_GET['notice'] ) && is_string( $_GET['notice'] ) ? sanitize_key( wp_unslash( $_GET['notice'] ) ) : '';
+	$wpsstudio_messages = array(
 		'saved'      => __( 'Snippet saved inactive. Review the filtered content, then activate it from All Snippets.', 'wp-snippet-studio' ),
 		'activate'   => __( 'Snippet activated.', 'wp-snippet-studio' ),
 		'deactivate' => __( 'Snippet deactivated.', 'wp-snippet-studio' ),
@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 		'pause'      => __( 'All snippet output paused.', 'wp-snippet-studio' ),
 		'resume'     => __( 'Snippet output resumed.', 'wp-snippet-studio' ),
 	);
-	if ( isset( $messages[ $notice ] ) ) :
+	if ( isset( $wpsstudio_messages[ $wpsstudio_notice ] ) ) :
 		?>
-		<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $messages[ $notice ] ); ?></p></div>
+		<div class="notice notice-success inline" role="status"><p><?php echo esc_html( $wpsstudio_messages[ $wpsstudio_notice ] ); ?></p></div>
 	<?php endif; ?>
