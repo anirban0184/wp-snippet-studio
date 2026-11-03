@@ -65,9 +65,22 @@ final class Runner {
 		if ( isset( $_GET['rest_route'] ) ) {
 			return true;
 		}
-		$path   = isset( $_SERVER['REQUEST_URI'] ) ? wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
-		$prefix = wp_parse_url( rest_url(), PHP_URL_PATH );
-		return is_string( $path ) && is_string( $prefix ) && str_starts_with( trailingslashit( $path ), trailingslashit( $prefix ) );
+		// Query-based REST shares the home/index.php path with ordinary pages.
+		// Its rest_route request parameter was checked above; the path is not a REST prefix.
+		if ( ! get_option( 'permalink_structure' ) ) {
+			return false;
+		}
+		// rest_url() needs $wp_rewrite for pretty URLs, which core initializes
+		// AFTER plugins_loaded. Match core's REST rewrite prefixes without it.
+		$path        = isset( $_SERVER['REQUEST_URI'] ) ? wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+		$home_path   = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$rest_prefix = trim( (string) rest_get_url_prefix(), '/' );
+		if ( ! is_string( $path ) || ! is_string( $home_path ) || '' === $rest_prefix ) {
+			return false;
+		}
+		$base = trailingslashit( $home_path );
+		$path = trailingslashit( $path );
+		return str_starts_with( $path, $base . $rest_prefix . '/' ) || str_starts_with( $path, $base . 'index.php/' . $rest_prefix . '/' );
 	}
 
 	public function run_manual( int $id, int $revision ): true|\WP_Error {

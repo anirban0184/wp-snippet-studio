@@ -6,6 +6,10 @@ use GlowingCoders\WPSnippetStudio\Repository;
 if ( '1' !== getenv( 'WPSSTUDIO_TESTS' ) || ! in_array( wp_get_environment_type(), array( 'local', 'development' ), true ) ) {
 	WP_CLI::error( 'Browser fixtures require an explicitly authorized disposable test site.' );
 }
+$path = getenv( 'WPSSTUDIO_QA_FIXTURE' );
+if ( ! $path || is_file( $path ) ) {
+	WP_CLI::error( 'Set WPSSTUDIO_QA_FIXTURE to a new private JSON path; clean existing fixtures before reseeding.' );
+}
 
 $repository = new Repository();
 $fixture    = array( 'baseURL' => home_url(), 'snippets' => array() );
@@ -37,12 +41,19 @@ foreach ( array(
 	}
 	$fixture['snippets'][ $index ] = $id;
 }
+if ( '1' === getenv( 'WPSSTUDIO_QA_PAGINATION' ) ) {
+	$fixture['pagination_ids'] = array();
+	for ( $index = 1; $index <= 53; ++$index ) {
+		$id = $repository->save( array( 'title' => sprintf( 'Pagination %03d', $index ), 'description' => 'Disposable pagination fixture', 'code' => 'Reusable content ' . $index, 'type' => 'text', 'scope' => 'everywhere', 'priority' => 10 ) );
+		if ( is_wp_error( $id ) ) {
+			WP_CLI::error( $id->get_error_message() );
+		}
+		$fixture['snippets'][] = $id;
+		$fixture['pagination_ids'][] = $id;
+	}
+}
 $fixture['post'] = wp_insert_post( array( 'post_title' => 'WP Snippet Studio browser checks', 'post_status' => 'publish', 'post_type' => 'page', 'post_content' => '[wpsstudio id="' . $fixture['snippets'][5] . '"] [wpsstudio id="' . $fixture['snippets'][6] . '"]' ) );
 update_option( 'wpsstudio_safe_mode', '0', false );
-$path = getenv( 'WPSSTUDIO_QA_FIXTURE' );
-if ( ! $path ) {
-	WP_CLI::error( 'Set WPSSTUDIO_QA_FIXTURE to an ignored, private JSON file path.' );
-}
 file_put_contents( $path, wp_json_encode( $fixture ) );
 chmod( $path, 0600 );
 WP_CLI::success( 'Disposable browser fixtures created. Credentials were written to the private fixture file.' );

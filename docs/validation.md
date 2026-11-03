@@ -1,4 +1,14 @@
-# Validation log — 0.1.0 development
+# Validation log
+
+## 0.1.1 — acceptance test pass, 2026-11-03
+
+The acceptance pass reproduced two problems in the original frontend request detector: ordinary home/index.php paths could be mistaken for REST paths, and pretty permalinks could cause rest_url() to access WordPress's rewrite object before core initialized it. The fix checks query-based REST explicitly and matches core's pretty REST prefixes without that late-initialized object.
+
+Regression checks now cover plain, pretty and index.php permalinks; their REST endpoints; saving/reactivating an active JavaScript snippet; pagination through 61 persisted records; Unicode and quoted source across all five types; manual receipts after metadata/source edits; unsigned activation; and pending schema migration behavior. A real two-process test uses independent database connections and an atomic counter to verify that simultaneous manual attempts produce one accepted execution and one blocked attempt.
+
+Final packaged-build results and CI links are recorded after the test run. This section is not a claim that uncompleted CI jobs have passed. Production/staging integration and independent auditing remain outstanding.
+
+## 0.1.0 — initial development validation
 
 Local validation performed on 2026-11-03. Use the latest GitHub Actions results to assess any later revision. This is internal implementation review and automated validation, not an independent security audit or a production-readiness certification.
 

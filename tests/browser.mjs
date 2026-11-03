@@ -112,6 +112,8 @@ try {
 
 	response = await context.request.get( base + '/' );
 	check( response.headers()['x-wpsstudio-everywhere'] === 'yes' && response.headers()['x-wpsstudio-frontend'] === 'yes' && !response.headers()['x-wpsstudio-admin'], 'Frontend PHP scope' );
+	response = await context.request.get( base + '/index.php?page_id=' + fixture.post, { maxRedirects: 0 } );
+	check( response.headers()['x-wpsstudio-frontend'] === 'yes', 'Ordinary index.php page requests run frontend PHP' );
 	response = await context.request.get( base + '/wp-admin/index.php' );
 	check( response.headers()['x-wpsstudio-everywhere'] === 'yes' && response.headers()['x-wpsstudio-admin'] === 'yes' && !response.headers()['x-wpsstudio-frontend'], 'Admin PHP scope' );
 	response = await context.request.get( base + '/?rest_route=/' );
@@ -139,6 +141,20 @@ try {
 	check( await row( 'New reusable content' ).getByRole( 'switch' ).getAttribute( 'aria-checked' ) === 'false', 'Browser saves are inactive' );
 	await Promise.all( [ page.waitForURL( /notice=delete/ ), row( 'New reusable content' ).getByRole( 'button', { name: 'Delete', exact: true } ).click() ] );
 	check( await row( 'New reusable content' ).count() === 0, 'Browser delete persists' );
+
+	await page.goto( studio );
+	await row( 'Frontend script' ).getByRole( 'link', { name: 'Edit', exact: true } ).click();
+	await page.locator( '#wpsstudio-description' ).fill( 'Edited during acceptance testing' );
+	await Promise.all( [ page.waitForURL( /notice=saved/ ), page.getByRole( 'button', { name: 'Save inactive', exact: true } ).click() ] );
+	check( await page.locator( '#wpsstudio-description' ).inputValue() === 'Edited during acceptance testing', 'Editing an existing snippet preserves metadata' );
+	await page.goto( studio );
+	check( await row( 'Frontend script' ).getByRole( 'switch' ).getAttribute( 'aria-checked' ) === 'false', 'Editing an active JavaScript snippet deactivates it' );
+	await page.goto( base + '/?page_id=' + fixture.post );
+	check( await page.evaluate( () => window.wpsstudioE2e ) === undefined, 'Saved-inactive edit stops JavaScript output on the next request' );
+	await page.goto( studio );
+	await Promise.all( [ page.waitForURL( /notice=activate/ ), row( 'Frontend script' ).getByRole( 'switch' ).click() ] );
+	await page.goto( base + '/?page_id=' + fixture.post );
+	check( await page.evaluate( () => window.wpsstudioE2e ) === 73, 'Edited JavaScript can be explicitly reactivated without source corruption' );
 
 	await page.goto( studio );
 	await Promise.all( [ page.waitForURL( /notice=run/ ), row( 'Manual maintenance' ).getByRole( 'button', { name: 'Run once', exact: true } ).click() ] );

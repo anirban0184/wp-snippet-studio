@@ -2,7 +2,7 @@
 
 A free WordPress manager for trusted PHP, CSS, JavaScript, HTML and reusable text snippets, maintained by [Glowing Coders](https://glowingcoders.com/).
 
-| Version | 0.1.0 development build |
+| Version | 0.1.1 development build |
 | --- | --- |
 | Status | Core implemented; staging and distribution review pending |
 | Requirements | Single-site WordPress 6.4+, PHP 8.2+ |
@@ -11,7 +11,7 @@ A free WordPress manager for trusted PHP, CSS, JavaScript, HTML and reusable tex
 
 This is a development build for isolated testing. It has not been deployed to glowingcoders.com, submitted to WordPress.org or published as a stable customer release. All implemented features are free.
 
-## Available in 0.1.0
+## Available in 0.1.1
 
 - Create snippets without an artificial count limit; edit and permanently delete them.
 - PHP, CSS, JavaScript, filtered HTML and escaped reusable text.
@@ -34,7 +34,7 @@ The list paginates 25 rows. HTML/text appear at their shortcode position; priori
 
 1. Back up the disposable/staging site's database and files, and confirm hosting/file access for recovery.
 2. Run `php scripts/build.php` in a development checkout, or use the generated installation ZIP from a verified build. GitHub's source archive includes development files; prefer the packaged ZIP.
-3. Upload `wp-snippet-studio-0.1.0.zip` through Plugins → Add Plugin → Upload Plugin and activate as a trusted administrator.
+3. Upload `wp-snippet-studio-0.1.1.zip` through Plugins → Add Plugin → Upload Plugin and activate as a trusted administrator.
 4. Open **Snippet Studio → Add New**, choose type/location/priority and save inactive.
 5. Review the source, then activate from All Snippets. For HTML/text, place the displayed shortcode in your content.
 
@@ -86,7 +86,7 @@ The [development guide](docs/development.md) explains how to reproduce checks. T
 
 | Section | Focus | Status / scope |
 | --- | --- | --- |
-| 1. Core Snippets | First development build | Core types, metadata, scopes, priority, activation, compact dashboard and recovery implemented in 0.1.0; staging/public-release review pending |
+| 1. Core Snippets | First development build | Core types, metadata, scopes, priority, activation, compact dashboard and recovery implemented in 0.1.1; staging/public-release review pending |
 | 2. Snippet Management | Organization | Search, tags, duplicate, bulk actions, import/export deferred |
 | 3. Placement Controls | Content placement | Header/footer fields, page-level and before/after-content placement deferred |
 | 4. Conditions & Integrations | Targeting | Device/user/page conditions, WooCommerce, Elementor and Gutenberg integrations deferred |
@@ -111,7 +111,7 @@ The [WordPress.org Plugin Developer FAQ](https://developer.wordpress.org/plugins
 | --- | --- |
 | Name, slug, text domain and GPL license | Complete |
 | GitHub repository | [anirban0184/wp-snippet-studio](https://github.com/anirban0184/wp-snippet-studio) |
-| 0.1.0 core code and compact dashboard | Implemented |
+| 0.1.1 core code and compact dashboard | Implemented |
 | Database, access controls and recovery | Implemented; checks documented |
 | Build, checks and documentation | Included; results in validation log |
 | glowingcoders.com deployment | Pending compatible staging and verified recovery |

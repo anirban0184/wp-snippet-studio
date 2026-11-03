@@ -26,7 +26,7 @@ Automatic PHP loads at `plugins_loaded` priority **20**, after active plugin fil
 | Admin only | Requests where `is_admin()` is true, including admin AJAX. Plugin management and login recovery routes are excluded. |
 | Run once manually | Explicit authorized POST only; remains inactive and never loads automatically. |
 
-**Login (`wp-login.php`) and this plugin's management pages always bypass automatic PHP**, so a snippet cannot lock the normal recovery path through its own execution. This also means PHP snippets cannot customize login in 0.1.0. Other plugins, WordPress or infrastructure can still prevent login/admin access.
+**Login (`wp-login.php`) and this plugin's management pages always bypass automatic PHP**, so a snippet cannot lock the normal recovery path through its own execution. This also means PHP snippets cannot customize login in 0.1.1. Other plugins, WordPress or infrastructure can still prevent login/admin access.
 
 PHP source must be a code body without `<?php`, `?>`, namespace declarations or `__halt_compiler`. Tokenizer parsing checks syntax without execution and fails closed if unavailable. It does not prove logical safety, resource bounds or correctness of later callbacks.
 
@@ -68,4 +68,4 @@ The custom table is `$wpdb->prefix . 'wpsstudio_snippets'`. Deactivation, upgrad
 define( 'WPSSTUDIO_DELETE_DATA', true );
 ```
 
-Remove that constant afterward. There is no trash/revision/restore UI in 0.1.0. Deleting an individual snippet is immediate and cannot undo its earlier effects. Multisite activation and execution are deferred.
+Remove that constant afterward. There is no trash/revision/restore UI in 0.1.1. Deleting an individual snippet is immediate and cannot undo its earlier effects. Multisite activation and execution are deferred.
