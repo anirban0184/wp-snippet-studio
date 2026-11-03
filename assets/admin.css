@@ -45,7 +45,7 @@
 	.wpsstudio-editor-settings { max-width: none; }
 }
 @media (max-width: 600px) {
-	.wpsstudio-heading { align-items: flex-start; }
+	.wpsstudio-heading { align-items: flex-start; flex-wrap: wrap; }
 	.wpsstudio-heading h1 { flex-wrap: wrap; font-size: 21px; }
 	.wpsstudio-tabs a { padding: 14px 10px; }
 	.wpsstudio-pagination { flex-wrap: wrap; }

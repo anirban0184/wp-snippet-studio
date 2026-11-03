@@ -96,6 +96,7 @@ jobs:
           php "$RUNNER_TEMP/legacy/scripts/build.php"
           php scripts/build.php
           php tests/package.php
+          cat build/wp-snippet-studio-1.0.0.zip.sha256
       - name: Verify actual legacy-package upgrade and content security
         run: |
           wp plugin install "$RUNNER_TEMP/legacy/build/wp-snippet-studio-0.1.1.zip" --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa

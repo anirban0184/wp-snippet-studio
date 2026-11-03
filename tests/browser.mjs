@@ -62,7 +62,8 @@ try {
 		if ( width === 1440 || width === 360 ) { await page.screenshot( { path: path.join( artifacts, 'content-' + width + '.png' ), fullPage: true } ); }
 	}
 	await page.setViewportSize( { width: 1440, height: 1000 } );
-	await page.getByRole( 'link', { name: 'Next', exact: true } ).click();
+	await Promise.all( [ page.waitForURL( /[?&]paged=2(?:&|$)/ ), page.getByRole( 'link', { name: 'Next', exact: true } ).click() ] );
+	await page.waitForLoadState( 'load' );
 	check( await page.locator( '.wpsstudio-table tbody tr' ).count() === 4, 'Second page contains remaining records' );
 	await page.goto( studio + '&type=html' );
 	check( await page.locator( '.wpsstudio-table tbody tr' ).count() === 1, 'HTML filter' );
