@@ -1,6 +1,6 @@
 # Coder Snippet Studio validation — 2026-11-06
 
-Renamed the plugin, main file, archive folder and text domain to `coder-snippet-studio` at the owner’s request after finding a conflicting project name. Local PHP/JavaScript syntax and 15-file package checks passed. New CI and official Plugin Check results are pending. Earlier results below apply to the previous identity only.
+Renamed the plugin, main file, archive folder and text domain to `coder-snippet-studio` at the owner’s request after finding a conflicting project name. Local PHP/JavaScript syntax and 15-file package checks passed. The renamed runtime passed standards/dependency checks and all three WordPress/PHP test combinations in run 42088469138. Its official Plugin Check reported “Success: Checks complete. No errors found.” The report parser initially rejected that clean-result wording; commit 739c70d fixes the parser and run 42088807231 validates that change. WordPress.org accepted the submitted ZIP and reported Automated Plugin Scanning: Pass; status Awaiting Review. Submitted ZIP SHA-256: `dbf743e067a1141c913d25e967a0d869fa7445d2f5a19af83845b16e4f3540c6`. Earlier results below apply to the previous identity only.
 
 # Validation log
 

@@ -8,4 +8,4 @@ Create HTML or plain-text snippets, save inactive, review and activate them, the
 
 Build with `php scripts/build.php`; validate with `php tests/package.php`. The installation ZIP is `build/coder-snippet-studio-1.0.0.zip`. See [validation](docs/validation.md) for actual results.
 
-WordPress.org submission is pending. The former full execution build remains in Git history and on `legacy/full-snippets-0.1.1`. This content edition supports HTML/text only. When moving an existing installation, deactivate the old plugin before activating this edition; its database and shortcode identifiers are retained.
+WordPress.org submission succeeded on November 6, 2026 (Asia/Dhaka). Automated scanning: Pass. Initial slug: `coder-snippet-studio`. Status: Awaiting Review; approval is pending. The former full execution build remains in Git history and on `legacy/full-snippets-0.1.1`. This content edition supports HTML/text only. When moving an existing installation, deactivate the old plugin before activating this edition; its database and shortcode identifiers are retained.
