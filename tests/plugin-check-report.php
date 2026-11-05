@@ -29,7 +29,7 @@ foreach ( preg_split( '/\\R/', $raw ) as $line ) {
 		}
 		continue;
 	}
-	if ( 'Success: No errors found.' === $line ) {
+	if ( in_array( $line, array( 'Success: No errors found.', 'Success: Checks complete. No errors found.' ), true ) ) {
 		$recognized = true;
 		continue;
 	}
