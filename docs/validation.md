@@ -1,3 +1,7 @@
+# Coder Snippet Studio validation — 2026-11-06
+
+Renamed the plugin, main file, archive folder and text domain to `coder-snippet-studio` at the owner’s request after finding a conflicting project name. Local PHP/JavaScript syntax and 15-file package checks passed. New CI and official Plugin Check results are pending. Earlier results below apply to the previous identity only.
+
 # Validation log
 
 ## 1.0.0 HTML/text submission candidate — 2026-11-03

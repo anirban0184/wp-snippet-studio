@@ -2,7 +2,7 @@
 
 ## 1.0.0 — HTML/text submission candidate
 
-- Keep the WP Snippet Studio name, folder slug, shortcode and text domain.
+- Rename to Coder Snippet Studio with the coder-snippet-studio folder, main file and text domain; retain existing database identifiers and shortcode for content compatibility.
 - Replace the full development runtime with reusable HTML and plain text only. Remove the executable runner, PHP/JavaScript/CSS types, run locations, priority controls and manual execution actions.
 - Filter HTML using an explicit allow-list and escape text with preserved line breaks. Never expand nested shortcodes.
 - Keep inactive saves, separate activation, compact table controls, type filters, pagination and the WordPress editor fallback. Add directly copyable shortcodes.

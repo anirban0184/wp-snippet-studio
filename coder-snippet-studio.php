@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WP Snippet Studio
+ * Plugin Name: Coder Snippet Studio
  * Description: Reuse reviewed HTML and plain text with inactive-first saves, individual controls and shortcodes.
  * Version: 1.0.0
  * Requires at least: 6.4
@@ -9,7 +9,7 @@
  * Author URI: https://glowingcoders.com/
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: wp-snippet-studio
+ * Text Domain: coder-snippet-studio
  *
  * @package WPSnippetStudio
  */
@@ -36,7 +36,7 @@ if ( is_multisite() ) {
 	add_action(
 		'admin_notices',
 		static function () {
-			echo '<div class="notice notice-error"><p>' . esc_html__( 'WP Snippet Studio supports single-site WordPress. Content output is disabled on multisite.', 'wp-snippet-studio' ) . '</p></div>';
+			echo '<div class="notice notice-error"><p>' . esc_html__( 'Coder Snippet Studio supports single-site WordPress. Content output is disabled on multisite.', 'coder-snippet-studio' ) . '</p></div>';
 		}
 	);
 	return;

@@ -28,9 +28,9 @@ final class Admin {
 		if ( ! Permissions::can_manage() ) {
 			return;
 		}
-		add_menu_page( __( 'WP Snippet Studio', 'wp-snippet-studio' ), __( 'Snippet Studio', 'wp-snippet-studio' ), 'manage_options', 'wpsstudio', array( $this, 'render' ), 'dashicons-editor-code', 81 );
-		add_submenu_page( 'wpsstudio', __( 'All Snippets', 'wp-snippet-studio' ), __( 'All Snippets', 'wp-snippet-studio' ), 'manage_options', 'wpsstudio', array( $this, 'render' ) );
-		add_submenu_page( 'wpsstudio', __( 'Add Snippet', 'wp-snippet-studio' ), __( 'Add New', 'wp-snippet-studio' ), 'manage_options', 'wpsstudio-new', array( $this, 'render' ) );
+		add_menu_page( __( 'Coder Snippet Studio', 'coder-snippet-studio' ), __( 'Snippet Studio', 'coder-snippet-studio' ), 'manage_options', 'wpsstudio', array( $this, 'render' ), 'dashicons-editor-code', 81 );
+		add_submenu_page( 'wpsstudio', __( 'All Snippets', 'coder-snippet-studio' ), __( 'All Snippets', 'coder-snippet-studio' ), 'manage_options', 'wpsstudio', array( $this, 'render' ) );
+		add_submenu_page( 'wpsstudio', __( 'Add Snippet', 'coder-snippet-studio' ), __( 'Add New', 'coder-snippet-studio' ), 'manage_options', 'wpsstudio-new', array( $this, 'render' ) );
 	}
 
 	public function handle(): void {
@@ -38,11 +38,11 @@ final class Admin {
 			return;
 		}
 		if ( ! Permissions::can_manage() ) {
-			wp_die( esc_html__( 'You do not have permission to manage snippets.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'You do not have permission to manage snippets.', 'coder-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		nocache_headers();
 		if ( ! Installer::ready() && ! Installer::install() ) {
-			$this->error = new \WP_Error( 'database', __( 'The snippet database is unavailable. Content output is paused.', 'wp-snippet-studio' ) );
+			$this->error = new \WP_Error( 'database', __( 'The snippet database is unavailable. Content output is paused.', 'coder-snippet-studio' ) );
 			return;
 		}
 		$method = isset( $_SERVER['REQUEST_METHOD'] ) && is_string( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
@@ -56,7 +56,7 @@ final class Admin {
 		$id     = Validator::id( $raw_id );
 		$nonce  = isset( $post['_wpnonce'] ) && is_string( $post['_wpnonce'] ) ? $post['_wpnonce'] : '';
 		if ( ! is_string( $raw_id ) || ( '0' !== $raw_id && ! $id ) || ! in_array( $action, array( 'save', 'activate', 'deactivate', 'delete', 'pause', 'resume' ), true ) || ! wp_verify_nonce( $nonce, 'wpsstudio_' . $action . '_' . $id ) ) {
-			wp_die( esc_html__( 'The security check failed. Reload this page and try again.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'The security check failed. Reload this page and try again.', 'coder-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		$revision = Validator::id( $post['revision'] ?? '' );
 		if ( 'save' === $action && ( ( $id && $revision ) || ( 0 === $id && '0' === ( $post['revision'] ?? null ) ) ) ) {
@@ -84,20 +84,20 @@ final class Admin {
 			}
 		} elseif ( in_array( $action, array( 'pause', 'resume' ), true ) && 0 === $id ) {
 			if ( 'resume' === $action && defined( 'WPSSTUDIO_SAFE_MODE' ) && WPSSTUDIO_SAFE_MODE ) {
-				$result = new \WP_Error( 'constant', __( 'Remove WPSSTUDIO_SAFE_MODE from wp-config.php before resuming output here.', 'wp-snippet-studio' ) );
+				$result = new \WP_Error( 'constant', __( 'Remove WPSSTUDIO_SAFE_MODE from wp-config.php before resuming output here.', 'coder-snippet-studio' ) );
 			} else {
 				$value = 'pause' === $action ? '1' : '0';
 				update_option( 'wpsstudio_safe_mode', $value, false );
-				$result = get_option( 'wpsstudio_safe_mode' ) === $value ? true : new \WP_Error( 'database', __( 'The output setting could not be saved.', 'wp-snippet-studio' ) );
+				$result = get_option( 'wpsstudio_safe_mode' ) === $value ? true : new \WP_Error( 'database', __( 'The output setting could not be saved.', 'coder-snippet-studio' ) );
 			}
 		} elseif ( ! $id || ! $revision || 'save' === $action ) {
-			$result = new \WP_Error( 'invalid', __( 'A valid snippet and revision are required.', 'wp-snippet-studio' ) );
+			$result = new \WP_Error( 'invalid', __( 'A valid snippet and revision are required.', 'coder-snippet-studio' ) );
 		} elseif ( 'activate' === $action || 'deactivate' === $action ) {
 			$result = $this->repository->status( $id, $revision, 'activate' === $action );
 		} elseif ( 'delete' === $action ) {
 			$result = $this->repository->delete( $id, $revision );
 		} else {
-			$result = new \WP_Error( 'invalid', __( 'The requested action is invalid.', 'wp-snippet-studio' ) );
+			$result = new \WP_Error( 'invalid', __( 'The requested action is invalid.', 'coder-snippet-studio' ) );
 		}
 		if ( is_wp_error( $result ) ) {
 			$this->error = $result;
@@ -155,7 +155,7 @@ final class Admin {
 
 	public function render(): void {
 		if ( ! Permissions::can_manage() ) {
-			wp_die( esc_html__( 'You do not have permission to view snippet content.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'You do not have permission to view snippet content.', 'coder-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		$wpsstudio_editing = $this->editing();
 		$wpsstudio_counts  = Installer::ready() ? $this->repository->counts() : array(
@@ -169,11 +169,11 @@ final class Admin {
 			$wpsstudio_id = isset( $_GET['id'] ) && is_string( $_GET['id'] ) ? Validator::id( sanitize_text_field( wp_unslash( $_GET['id'] ) ) ) : 0;
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Invalid read-only IDs must not become new records.
 			if ( isset( $_GET['id'] ) && ! $wpsstudio_id ) {
-				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
+				wp_die( esc_html__( 'Snippet not found.', 'coder-snippet-studio' ), '', array( 'response' => 404 ) );
 			}
 			$wpsstudio_snippet = $this->draft ?? ( $wpsstudio_id ? $this->repository->get( $wpsstudio_id ) : $this->defaults() );
 			if ( ! $wpsstudio_snippet ) {
-				wp_die( esc_html__( 'Snippet not found.', 'wp-snippet-studio' ), '', array( 'response' => 404 ) );
+				wp_die( esc_html__( 'Snippet not found.', 'coder-snippet-studio' ), '', array( 'response' => 404 ) );
 			}
 		} else {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Allow-listed read-only filtering.

@@ -25,7 +25,7 @@ for ( $i = 1; $i <= 27; ++$i ) {
 	if ( is_wp_error( $id ) ) { WP_CLI::error( 'Pagination fixture failed.' ); }
 	$fixture['snippets'][] = $id;
 }
-$fixture['post'] = wp_insert_post( array( 'post_title' => 'WP Snippet Studio content checks', 'post_status' => 'publish', 'post_type' => 'page', 'post_content' => '[wpsstudio id="' . $fixture['snippets'][0] . '"] [wpsstudio id="' . $fixture['snippets'][1] . '"]' ) );
+$fixture['post'] = wp_insert_post( array( 'post_title' => 'Coder Snippet Studio content checks', 'post_status' => 'publish', 'post_type' => 'page', 'post_content' => '[wpsstudio id="' . $fixture['snippets'][0] . '"] [wpsstudio id="' . $fixture['snippets'][1] . '"]' ) );
 update_option( 'wpsstudio_safe_mode', '0', false );
 file_put_contents( $path, wp_json_encode( $fixture ) ); chmod( $path, 0600 );
 WP_CLI::success( 'Private content browser fixtures prepared.' );

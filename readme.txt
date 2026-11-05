@@ -1,4 +1,4 @@
-=== WP Snippet Studio ===
+=== Coder Snippet Studio ===
 Contributors: glowingcoders
 Tags: reusable content, html, text, shortcodes, snippets
 Requires at least: 6.4
@@ -12,7 +12,7 @@ Create reusable HTML and plain text with inactive-first saves, separate activati
 
 == Description ==
 
-WP Snippet Studio helps administrators maintain repeated content in one place. Use it for contact details, opening hours, notices, calls to action and other reusable HTML or plain text.
+Coder Snippet Studio helps administrators maintain repeated content in one place. Use it for contact details, opening hours, notices, calls to action and other reusable HTML or plain text.
 
 Each snippet is saved inactive. Review its filtered content, activate it, and place its shortcode wherever WordPress processes shortcodes. Editing an active snippet makes it inactive again until you review and reactivate it.
 
@@ -37,7 +37,7 @@ Source and development tools: https://github.com/anirban0184/wp-snippet-studio
 
 == Installation ==
 
-1. Install WP Snippet Studio and activate it on a single-site installation using WordPress 6.4+ and PHP 8.2+.
+1. Install Coder Snippet Studio and activate it on a single-site installation using WordPress 6.4+ and PHP 8.2+.
 2. Open Snippet Studio > Add New.
 3. Add a title, choose HTML or plain text, enter content and save inactive.
 4. Review the saved content, then activate it from All Snippets.

@@ -130,7 +130,7 @@ final class Repository {
 		}
 		$approved = $this->valid_content( $row );
 		if ( $active && ! $approved ) {
-			return new \WP_Error( 'review', __( 'Review the content and save it inactive before activation.', 'wp-snippet-studio' ) );
+			return new \WP_Error( 'review', __( 'Review the content and save it inactive before activation.', 'coder-snippet-studio' ) );
 		}
 		$new             = $row;
 		$new['status']   = $active ? 'active' : 'inactive';
@@ -188,10 +188,10 @@ final class Repository {
 	}
 
 	private function conflict(): \WP_Error {
-		return new \WP_Error( 'conflict', __( 'This snippet changed or is unavailable. Reload it before trying again.', 'wp-snippet-studio' ) );
+		return new \WP_Error( 'conflict', __( 'This snippet changed or is unavailable. Reload it before trying again.', 'coder-snippet-studio' ) );
 	}
 
 	private function unavailable(): \WP_Error {
-		return new \WP_Error( 'unavailable', __( 'Snippet management is unavailable. Check your permissions and database availability.', 'wp-snippet-studio' ) );
+		return new \WP_Error( 'unavailable', __( 'Snippet management is unavailable. Check your permissions and database availability.', 'coder-snippet-studio' ) );
 	}
 }

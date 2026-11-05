@@ -38,20 +38,12 @@ foreach ( preg_split( '/\\R/', $raw ) as $line ) {
 if ( ! $recognized ) {
 	throw new RuntimeException( 'Plugin Check did not produce a recognized report.' );
 }
-$unreviewed = array_filter(
-	$issues,
-	static fn( array $issue ): bool => ! (
-		'WARNING' === $issue['type']
-		&& 'trademarked_term' === $issue['code']
-		&& in_array( $issue['file'], array( 'readme.txt', 'wp-snippet-studio.php' ), true )
-		&& str_contains( $issue['message'], '"wp"' )
-	)
-);
+$unreviewed = $issues;
 $report = array(
 	'errors' => count( array_filter( $issues, static fn( array $issue ): bool => 'ERROR' === $issue['type'] ) ),
 	'warnings' => count( array_filter( $issues, static fn( array $issue ): bool => 'WARNING' === $issue['type'] ) ),
 	'unreviewed_findings' => count( $unreviewed ),
-	'review_required' => 'The owner requested WP Snippet Studio / wp-snippet-studio. The WP-prefix warning is retained for reviewer resolution; CI success is not name clearance or directory approval.',
+	'review_required' => 'All findings must be resolved before submission.',
 	'issues' => $issues,
 );
 file_put_contents( $root . '/build/content/plugin-check.json', json_encode( $report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . PHP_EOL );

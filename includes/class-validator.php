@@ -11,22 +11,22 @@ final class Validator {
 	public static function snippet( array $input ): array|\WP_Error {
 		foreach ( array( 'title', 'description', 'code', 'type' ) as $field ) {
 			if ( ! isset( $input[ $field ] ) || ! is_string( $input[ $field ] ) ) {
-				return new \WP_Error( 'invalid', __( 'Complete all snippet fields using valid values.', 'wp-snippet-studio' ) );
+				return new \WP_Error( 'invalid', __( 'Complete all snippet fields using valid values.', 'coder-snippet-studio' ) );
 			}
 		}
 		$title = sanitize_text_field( $input['title'] );
 		if ( '' === trim( $title ) || mb_strlen( $title ) > 150 ) {
-			return new \WP_Error( 'title', __( 'Add a title of 1–150 characters.', 'wp-snippet-studio' ) );
+			return new \WP_Error( 'title', __( 'Add a title of 1–150 characters.', 'coder-snippet-studio' ) );
 		}
 		if ( ! in_array( $input['type'], self::TYPES, true ) ) {
-			return new \WP_Error( 'type', __( 'Choose HTML or plain text.', 'wp-snippet-studio' ) );
+			return new \WP_Error( 'type', __( 'Choose HTML or plain text.', 'coder-snippet-studio' ) );
 		}
 		if ( strlen( $input['code'] ) > 1048576 ) {
-			return new \WP_Error( 'size', __( 'Each snippet can contain up to 1 MB of content.', 'wp-snippet-studio' ) );
+			return new \WP_Error( 'size', __( 'Each snippet can contain up to 1 MB of content.', 'coder-snippet-studio' ) );
 		}
 		$code = 'html' === $input['type'] ? self::html( $input['code'] ) : wp_check_invalid_utf8( $input['code'] );
 		if ( '' === trim( $code ) ) {
-			return new \WP_Error( 'empty', __( 'Add supported content before saving.', 'wp-snippet-studio' ) );
+			return new \WP_Error( 'empty', __( 'Add supported content before saving.', 'coder-snippet-studio' ) );
 		}
 		return array(
 			'title'       => $title,

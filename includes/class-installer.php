@@ -12,10 +12,10 @@ final class Installer {
 
 	public static function activate( bool $network_wide = false ): void {
 		if ( $network_wide || ! Permissions::can_manage() ) {
-			wp_die( esc_html__( 'WP Snippet Studio requires an administrator on a single-site installation.', 'wp-snippet-studio' ), '', array( 'response' => 403 ) );
+			wp_die( esc_html__( 'Coder Snippet Studio requires an administrator on a single-site installation.', 'coder-snippet-studio' ), '', array( 'response' => 403 ) );
 		}
 		if ( ! self::install() ) {
-			wp_die( esc_html__( 'The snippet table is unavailable. Check database permissions and retry activation.', 'wp-snippet-studio' ) );
+			wp_die( esc_html__( 'The snippet table is unavailable. Check database permissions and retry activation.', 'coder-snippet-studio' ) );
 		}
 	}
 

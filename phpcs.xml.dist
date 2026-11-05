@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<ruleset name="WP Snippet Studio">
+<ruleset name="Coder Snippet Studio">
   <description>WordPress security and code quality checks for shipped source.</description>
-  <file>wp-snippet-studio.php</file>
+  <file>coder-snippet-studio.php</file>
   <file>includes</file>
   <file>admin</file>
   <file>uninstall.php</file>
@@ -9,7 +9,7 @@
   <arg value="sp"/>
   <config name="testVersion" value="8.2-"/>
   <rule ref="WordPress-Extra"/>
-  <rule ref="WordPress.WP.I18n"><properties><property name="text_domain" type="array"><element value="wp-snippet-studio"/></property></properties></rule>
+  <rule ref="WordPress.WP.I18n"><properties><property name="text_domain" type="array"><element value="coder-snippet-studio"/></property></properties></rule>
   <rule ref="PHPCompatibilityWP"/>
   <!-- Class files are explicitly required; namespacing keeps their public names unique. -->
   <rule ref="WordPress.Files.FileName"><exclude name="WordPress.Files.FileName.InvalidClassFileName"/></rule>

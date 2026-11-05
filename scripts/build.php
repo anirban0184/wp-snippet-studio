@@ -6,12 +6,12 @@ if ( ! class_exists( ZipArchive::class ) ) {
 	fwrite( STDERR, "The development build requires PHP's zip extension.\n" );
 	exit( 1 );
 }
-preg_match( '/^ \* Version: ([0-9.]+)$/m', file_get_contents( $root . '/wp-snippet-studio.php' ), $match );
+preg_match( '/^ \* Version: ([0-9.]+)$/m', file_get_contents( $root . '/coder-snippet-studio.php' ), $match );
 $version = $match[1] ?? '';
 if ( ! preg_match( '/^\d+\.\d+\.\d+$/D', $version ) ) {
 	throw new RuntimeException( 'Invalid plugin version.' );
 }
-$files = array( 'wp-snippet-studio.php', 'uninstall.php', 'readme.txt', 'LICENSE' );
+$files = array( 'coder-snippet-studio.php', 'uninstall.php', 'readme.txt', 'LICENSE' );
 foreach ( array( 'includes', 'admin', 'assets' ) as $directory ) {
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root . '/' . $directory, FilesystemIterator::SKIP_DOTS ) );
 	foreach ( $iterator as $file ) {
@@ -24,13 +24,13 @@ sort( $files, SORT_STRING );
 if ( ! is_dir( $root . '/build' ) ) {
 	mkdir( $root . '/build', 0755, true );
 }
-$output = $root . '/build/wp-snippet-studio-' . $version . '.zip';
+$output = $root . '/build/coder-snippet-studio-' . $version . '.zip';
 $zip = new ZipArchive();
 if ( true !== $zip->open( $output, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
 	throw new RuntimeException( 'Could not create the build archive.' );
 }
 foreach ( $files as $file ) {
-	$name = 'wp-snippet-studio/' . $file;
+	$name = 'coder-snippet-studio/' . $file;
 	if ( ! $zip->addFile( $root . '/' . $file, $name ) ) {
 		throw new RuntimeException( 'Missing build source: ' . $file );
 	}

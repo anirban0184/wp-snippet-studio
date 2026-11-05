@@ -1,5 +1,5 @@
 {
-  "name": "glowingcoders/wp-snippet-studio",
+  "name": "glowingcoders/coder-snippet-studio",
   "description": "Reusable reviewed HTML and plain text for single-site WordPress.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",

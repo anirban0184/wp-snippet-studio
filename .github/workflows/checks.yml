@@ -96,13 +96,13 @@ jobs:
           php "$RUNNER_TEMP/legacy/scripts/build.php"
           php scripts/build.php
           php tests/package.php
-          cat build/wp-snippet-studio-1.0.0.zip.sha256
+          cat build/coder-snippet-studio-1.0.0.zip.sha256
       - name: Verify actual legacy-package upgrade and content security
         run: |
           wp plugin install "$RUNNER_TEMP/legacy/build/wp-snippet-studio-0.1.1.zip" --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
           wp plugin deactivate wp-snippet-studio --skip-plugins=wp-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
           wp eval-file tests/upgrade-fixture.php --skip-plugins=wp-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin install build/wp-snippet-studio-1.0.0.zip --force --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin install build/coder-snippet-studio-1.0.0.zip --force --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
           wp eval-file tests/upgrade-assert.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
           wp eval-file tests/integration.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -127,29 +127,29 @@ jobs:
       - name: Verify replacement, deactivation and ordinary-uninstall retention
         run: |
           WPSSTUDIO_RETENTION_ACTION=seed wp eval-file tests/retention.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin deactivate wp-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin activate wp-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin deactivate coder-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin activate coder-snippet-studio --path="$RUNNER_TEMP/wordpress" --user=studioqa
           WPSSTUDIO_RETENTION_ACTION=check wp eval-file tests/retention.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin install build/wp-snippet-studio-1.0.0.zip --force --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin install build/coder-snippet-studio-1.0.0.zip --force --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
           WPSSTUDIO_RETENTION_ACTION=check wp eval-file tests/retention.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin uninstall wp-snippet-studio --deactivate --path="$RUNNER_TEMP/wordpress" --user=studioqa
-          wp plugin install build/wp-snippet-studio-1.0.0.zip --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin uninstall coder-snippet-studio --deactivate --path="$RUNNER_TEMP/wordpress" --user=studioqa
+          wp plugin install build/coder-snippet-studio-1.0.0.zip --activate --path="$RUNNER_TEMP/wordpress" --user=studioqa
           WPSSTUDIO_RETENTION_ACTION=check wp eval-file tests/retention.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
           WPSSTUDIO_RETENTION_ACTION=remove wp eval-file tests/retention.php --path="$RUNNER_TEMP/wordpress" --user=studioqa
       - name: Official WordPress Plugin Check, unfiltered default checks
         if: matrix.php == '8.3'
         run: |
           wp plugin install plugin-check --activate --path="$RUNNER_TEMP/wordpress"
-          wp plugin check wp-snippet-studio --require="$RUNNER_TEMP/wordpress/wp-content/plugins/plugin-check/cli.php" --format=json --path="$RUNNER_TEMP/wordpress" > build/content/plugin-check.raw.txt
+          wp plugin check coder-snippet-studio --require="$RUNNER_TEMP/wordpress/wp-content/plugins/plugin-check/cli.php" --format=json --path="$RUNNER_TEMP/wordpress" > build/content/plugin-check.raw.txt
           cat build/content/plugin-check.raw.txt
           php tests/plugin-check-report.php
           cat build/content/plugin-check.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() && matrix.php == '8.3'
         with:
-          name: wp-snippet-studio-submission-candidate
+          name: coder-snippet-studio-submission-candidate
           path: |
-            build/wp-snippet-studio-1.0.0.zip
-            build/wp-snippet-studio-1.0.0.zip.sha256
+            build/coder-snippet-studio-1.0.0.zip
+            build/coder-snippet-studio-1.0.0.zip.sha256
             build/content/plugin-check.json
           if-no-files-found: error

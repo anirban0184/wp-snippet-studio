@@ -4,7 +4,7 @@ The 1.0.0 product is the HTML/text edition. The full development source and old 
 
 | Path | Responsibility |
 | --- | --- |
-| `wp-snippet-studio.php` | Metadata, explicit class loading and registration |
+| `coder-snippet-studio.php` | Metadata, explicit class loading and registration |
 | `includes/class-installer.php` | Additive schema version 2 and conservative legacy migration |
 | `includes/class-permissions.php` | Administrator and single-site boundary |
 | `includes/class-validator.php` | Typed fields, strict IDs, content limits and HTML allow-list |

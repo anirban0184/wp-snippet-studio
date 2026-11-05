@@ -1,5 +1,5 @@
 {
-  "name": "wp-snippet-studio-development",
+  "name": "coder-snippet-studio-development",
   "private": true,
   "version": "1.0.0",
   "description": "Development checks for the HTML/text edition; no npm dependencies are shipped.",
